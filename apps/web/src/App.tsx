@@ -1,122 +1,76 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const handleSelectRole = (role: string) => {
+    alert(`Has seleccionado entrar como: ${role}`);
+    // Más adelante aquí programaremos el cambio a la pantalla correspondiente
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="login-container">
+      {/* Lateral Izquierdo */}
+      <aside className="sidebar">
+        <div className="brand-logo">
+          <div className="logo-icon">🗓️</div>
+          <span className="logo-text">AnticipaTuDía</span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+
+        <div className="sidebar-content">
+          <p className="tagline">TU AGENDA, TU MANERA</p>
+          <h1 className="sidebar-title">
+            Organiza tu día.<br />Avanza a tu ritmo.
+          </h1>
+          <p className="sidebar-description">
+            Una agenda accesible y personal para acompañarte en cada paso.
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      </aside>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* Panel Principal Derecho */}
+      <main className="main-content">
+        {/* Barra accesibilidad superior */}
+        <div className="accessibility-bar">
+          <button className="acc-btn">🔊 Escuchar</button>
+          <button className="acc-btn">👁️ Contraste</button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* Sección de Selección */}
+        <section className="welcome-section">
+          <span className="sub-welcome">BIENVENIDO A ANTICIPA TU DÍA</span>
+          <h2 className="main-question">¿Cómo quieres entrar?</h2>
+
+          <div className="cards-grid">
+            {/* Botón Estudiante */}
+            <button 
+              className="role-card estudiante" 
+              onClick={() => handleSelectRole('Estudiante')}
+            >
+              <h3 className="card-title">Estudiante</h3>
+              <span className="card-subtitle">Acceso ocupando</span>
+            </button>
+
+            {/* Botón Tutor */}
+            <button 
+              className="role-card tutor" 
+              onClick={() => handleSelectRole('Tutor')}
+            >
+              <h3 className="card-title">Tutor</h3>
+              <span className="card-subtitle">Acompaña y organiza</span>
+            </button>
+
+            {/* Botón Familia */}
+            <button 
+              className="role-card familia" 
+              onClick={() => handleSelectRole('Familia')}
+            >
+              <h3 className="card-title">Familia</h3>
+              <span className="card-subtitle">Conecta e infórmate</span>
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
