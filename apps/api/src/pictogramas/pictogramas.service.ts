@@ -5,6 +5,15 @@ import {
 
 import { SupabaseService } from '../supabase/supabase.service.js';
 
+interface PictogramRow {
+    id: string;
+    name: string;
+    description: string;
+    active: boolean;
+    sort_order: number;
+    arasaac_id: number | null;
+}
+
 @Injectable()
 export class PictogramsService {
     constructor(
@@ -12,7 +21,7 @@ export class PictogramsService {
     ) { }
 
     async findAll() {
-        const supabase = this.supabaseService.getClient();
+        const supabase = this.supabaseService.admin;
 
         const { data, error } = await supabase
             .from('pictograms')
@@ -35,7 +44,7 @@ export class PictogramsService {
             );
         }
 
-        return data.map((pictogram) => ({
+        return ((data ?? []) as PictogramRow[]).map((pictogram) => ({
             id: pictogram.id,
             name: pictogram.name,
             description: pictogram.description,
