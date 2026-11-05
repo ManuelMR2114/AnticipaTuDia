@@ -35,30 +35,4 @@ export class SupabaseService {
             AUTH_OPTIONS,
         );
     }
-
-    login(redirectTo: string, email: string): Promise<void> {
-        const client = this.createAnonClient();
-        return client.auth.signInWithOtp({
-            email,
-            options: { emailRedirectTo: redirectTo },
-        }).then((result) => {
-            if (result.error) {
-                throw result.error;
-            }
-        });
-    }
-
-    registro(redirectTo: string, email: string): Promise<void> {
-        const client = this.createAnonClient();
-        return client.auth.signUp({
-            email,
-            options: { emailRedirectTo: redirectTo },
-        }).then((result) => {
-            if (result.error) {
-                throw result.error;
-            }
-        });
-    }
-
-
 }
