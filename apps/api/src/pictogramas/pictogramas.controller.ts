@@ -3,7 +3,7 @@ import {
     Get,
 } from '@nestjs/common';
 
-import { PictogramsService } from 'pictograms.service.js';
+import { PictogramsService } from './pictogramas.service.js';
 
 @Controller('pictograms')
 export class PictogramsController {
