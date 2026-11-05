@@ -14,7 +14,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+  
   const config = app.get(ConfigService<EnvVars, true>);
   await app.listen(config.get('PORT', { infer: true }));
 }
