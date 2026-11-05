@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module.js';
     }),
     SupabaseModule,
     PictogramsModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
