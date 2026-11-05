@@ -88,6 +88,16 @@ Migraciones aplicadas:
 4. `20261105085901 remove_login_lockout` (decisión: **sin bloqueo por intentos**)
 5. `20261105094242 student_accessible_login` (método y credenciales del alumnado;
    ver detalle en el documento de decisiones)
+6. `20261105122025 login_review_fixes_c1_c2_c4_c5` (índice duplicado fuera,
+   trigger de `updated_at`, `rls_auto_enable` no invocable, coherencia
+   credencial ↔ rol)
+7. `20261105122036 pictograms_arasaac_ids` (`arasaac_id` de los 12 pictogramas)
+8. `20261105122105 fix_student_credentials_guard_null_method`
+
+En Supabase Auth el **registro público está desactivado**: todas las
+cuentas las crea el administrador. El alumnado tiene correo real en
+`auth.users` como cualquier usuario; para entrar teclea su
+`login_identifier`, no el correo.
 
 Tablas en `public` (todas con RLS activado):
 
@@ -103,14 +113,23 @@ Tablas en `public` (todas con RLS activado):
   no-admin cambie `role`, `login_identifier` o `deactivated_at`.
 - `student_credentials` — Hash de la credencial del alumno para
   `password | pin | pattern` (`user_id` PK → `profiles`). Sin políticas RLS:
-  solo accede el backend con `service_role`.
+  solo accede el backend con `service_role`. Tiene trigger
+  `touch_updated_at`. Los triggers `private.guard_student_credentials` y
+  `private.cleanup_student_credentials` fuerzan que la credencial solo
+  exista para un `student` y solo la de su `login_method`: el personal
+  (teacher/tutor/specialist/family/admin) **nunca** tiene PIN, patrón ni
+  pictogramas, solo correo + contraseña de Supabase Auth.
 - `pictogram_credentials` — Hash de la secuencia de pictogramas
   (`user_id` PK → `auth.users`, `sequence_length` entre 3 y 4). Sin políticas
-  RLS: solo backend con `service_role`.
+  RLS: solo backend con `service_role`. Mismos triggers de coherencia.
 - `pictograms` — Catálogo de pictogramas (`id` texto, `name`, `description`,
-  `active`, `sort_order`, `arasaac_id` nullable). 12 filas semilla:
-  gato, perro, casa, sol, luna, manzana, árbol, flor, coche, libro, pelota,
-  agua (ids `pictograma-*`). Sin políticas RLS: el catálogo se sirve vía backend.
+  `active`, `sort_order`, `arasaac_id`). 12 filas semilla con su
+  `arasaac_id` oficial relleno: gato, perro, casa, sol, luna, manzana,
+  árbol, flor, coche, libro, pelota, agua (ids `pictograma-*`). La imagen
+  se construye como
+  `https://static.arasaac.org/pictograms/{arasaac_id}/{arasaac_id}_500.png`
+  (ARASAAC es CC BY-NC-SA: atribuir). Sin políticas RLS: el catálogo se
+  sirve vía backend.
 - `student_links` — Vínculos alumno ↔ profesor/tutor/especialista/familia
   (`relation`: `tutor | teacher | specialist | family`).
 - `tasks` / `subtasks` — Agenda (iteraciones futuras; ya modeladas, con RLS).
@@ -159,5 +178,5 @@ sesión no se ha escrito código de la API de login.
 - Antes de proponer cambios de BD, revisar el estado real en Supabase.
 - Ningún secreto en el repo: `.env` está en `.gitignore`; documentar las
   variables necesarias en el `.md` correspondiente.
-- No dar por hecho que un alumno tiene correo electrónico: su identificador
-  es `profiles.login_identifier`.
+- El alumnado tiene correo en `auth.users`, pero para entrar usa su
+  `profiles.login_identifier` corto, no el correo.
