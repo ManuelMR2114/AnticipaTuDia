@@ -1,1 +1,1 @@
-export type Role = 'student' | 'teacher' | 'guardian';
+export type Role = 'student' | 'tutor' | 'teacher' | 'specialist' | 'family' | 'admin';
