@@ -1,6 +1,7 @@
 # Login accesible — decisiones de diseño (iteración 1)
 
-> Estado: **documento de decisiones, sin implementación todavía.**
+> Estado: **documento de decisiones; implementación parcial en curso**
+> (login de personal y catálogo de pictogramas, ver sección 10).
 > Fecha de la foto de la BD: 2026-11-05.
 > Contexto general del proyecto: [../AGENTS.md](../AGENTS.md).
 
@@ -186,6 +187,11 @@ Endpoints previstos:
 | `POST /api/auth/admin/students` | Solo `admin` | Alta de alumno: identificador, nombre, método y credencial inicial |
 | `PATCH /api/auth/admin/students/:id/login` | Solo `admin` | Cambiar método y/o credencial de un alumno (incluye "olvidó su PIN") |
 
+Estado de implementación: solo están implementados `POST /api/auth/login`
+y el catálogo como `GET /api/pictograms` (ruta real; no
+`GET /api/auth/pictograms`), además de `GET /api/health`.
+El resto de la tabla sigue siendo contrato previsto, no implementado.
+
 Errores: JSON uniforme `{ "statusCode": 401, "message": "..." }` con
 mensajes pensados para poder mostrarse/leerse en voz alta sin dar pistas
 ("Credenciales incorrectas", sin distinguir si falló el identificador o la
@@ -212,7 +218,7 @@ se valora responder igual para no filtrar qué identificadores existen
 - Baja lógica: un perfil con `deactivated_at` no puede entrar por ningún
   flujo.
 
-## 8. Configuración que necesitará el backend (al implementar)
+## 8. Configuración que usa el backend
 
 Variables de entorno de `apps/api` (nunca en el repo):
 
@@ -223,8 +229,8 @@ SUPABASE_SERVICE_ROLE_KEY=   # SOLO backend, secreta
 PORT=3000
 ```
 
-Dependencias previstas en `apps/api`: `@supabase/supabase-js` y validación
-(`class-validator`/`class-transformer`) — a instalar al implementar.
+Dependencias ya instaladas en `apps/api`: `@supabase/supabase-js` y
+validación (`class-validator`/`class-transformer`).
 
 ## 9. Preguntas abiertas para el equipo
 
@@ -257,5 +263,7 @@ Migraciones de esta iteración, todas aplicadas y verificadas:
 - `20261105122105 fix_student_credentials_guard_null_method` — corrección
   del guardia C5 con `login_method` a `NULL` (detectado en pruebas).
 
-Todavía no hay código de API que use este esquema: eso es la
-implementación, pendiente de arrancar.
+Ya hay código de API que usa parte de este esquema: el login de
+personal (`POST /api/auth/login`) y el catálogo de pictogramas
+(`GET /api/pictograms`). El login accesible del alumnado sigue
+pendiente de implementar.
