@@ -4,6 +4,7 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { validateEnv } from './supabase/env.validation.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
+import { AuthModule } from './auth/auth.module.js';
 
 @Module({
   imports: [
