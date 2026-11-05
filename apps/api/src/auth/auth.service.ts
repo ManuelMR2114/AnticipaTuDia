@@ -5,7 +5,7 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service.js';
-import type { SessionResponse, UserRole } from './auth.types.js';
+import type { SessionResponse, UserRole } from '@agenda/shared';
 
 const MENSAJE_CREDENCIALES = 'Credenciales incorrectas';
 

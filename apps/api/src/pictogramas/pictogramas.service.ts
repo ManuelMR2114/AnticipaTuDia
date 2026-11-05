@@ -3,6 +3,7 @@ import {
     InternalServerErrorException,
 } from '@nestjs/common';
 
+import type { Pictogram } from '@agenda/shared';
 import { SupabaseService } from '../supabase/supabase.service.js';
 
 interface PictogramRow {
@@ -20,7 +21,7 @@ export class PictogramsService {
         private readonly supabaseService: SupabaseService,
     ) { }
 
-    async findAll() {
+    async findAll(): Promise<Pictogram[]> {
         const supabase = this.supabaseService.admin;
 
         const { data, error } = await supabase
