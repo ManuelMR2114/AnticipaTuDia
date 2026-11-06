@@ -1,6 +1,7 @@
 # Login accesible — decisiones de diseño (iteración 1)
 
-> Estado: **documento de decisiones, sin implementación todavía.**
+> Estado: **documento de decisiones; implementación parcial en curso**
+> (login de personal y catálogo de pictogramas, ver sección 10).
 > Fecha de la foto de la BD: 2026-11-05.
 > Contexto general del proyecto: [../AGENTS.md](../AGENTS.md).
 
@@ -49,6 +50,38 @@ Relevante para el login:
   preferencias de accesibilidad del alumno (tamaño, contraste, audio…),
   fuera de esta iteración pero conviene no mezclarlo con el login.
 
+### Revisión del equipo (2026-11-05, aplicada)
+
+- **El alumnado también tiene correo**, como cualquier usuario: vive en
+  `auth.users` (no se duplica en `profiles`). Lo que el alumno teclea para
+  identificarse sigue siendo su `login_identifier` corto; el correo es un
+  dato de su cuenta, no algo que tenga que escribir o memorizar.
+- **Registro público desactivado** en Supabase Auth (hecho en el panel):
+  todas las cuentas las crea el administrador.
+- **C1** · Borrado el índice único duplicado de `login_identifier`
+  (migración `login_review_fixes_c1_c2_c4_c5`).
+- **C2** · `student_credentials` ya tiene trigger `touch_updated_at`.
+- **C3** · Los 12 pictogramas tienen su `arasaac_id` oficial relleno
+  (migración `pictograms_arasaac_ids`, verificados contra
+  `api.arasaac.org`). La API devolverá ese id y el frontend construirá la
+  imagen sin llamar a ARASAAC en cada login:
+  `https://static.arasaac.org/pictograms/{arasaac_id}/{arasaac_id}_500.png`.
+  Es la forma adecuada: menos latencia, funciona con la PWA en caché y no
+  depende de que la API de búsqueda de ARASAAC responda en ese momento.
+  Recordatorio: los pictogramas de ARASAAC son CC BY-NC-SA, hay que
+  atribuir la autoría en la app.
+- **C4** · Revocado `EXECUTE` de `rls_auto_enable()` a `public`, `anon` y
+  `authenticated`: el event trigger `ensure_rls` sigue funcionando, pero
+  la función ya no es invocable como RPC.
+- **C5** · Coherencia credencial ↔ rol forzada en BD (triggers
+  `guard_student_credentials` y `profiles_credentials_cleanup`):
+  las credenciales accesibles solo pueden existir para `student` y solo
+  la del método configurado; al cambiar de método o de rol, la credencial
+  anterior se borra sola. Profesor, tutor, especialista, familia y admin
+  entran únicamente con correo + contraseña de Supabase Auth, sin PIN,
+  patrón ni pictogramas. Probado con un usuario temporal: sin método,
+  con método incompatible, cambio de método y cambio de rol.
+
 
 ## 3. Decisiones ya cerradas (vienen del enunciado)
 
@@ -57,7 +90,9 @@ Relevante para el login:
 - **D2. El método lo elige el administrador, no el alumno**, y queda guardado
   en `profiles.login_method`. El alumno no ve un selector de métodos: al
   introducir su identificador, la app le presenta directamente su método.
-- **D3. El alumno se identifica con `login_identifier`, no con correo.**
+- **D3. El alumno se identifica tecleando su `login_identifier`, no su
+  correo.** Su cuenta sí tiene correo real en `auth.users`, como la de
+  cualquier persona; simplemente no es lo que usa para entrar.
 - **D4. Sin bloqueo por intentos fallidos** (ya aplicado en BD).
 - **D5. Cuentas creadas por el administrador.** No hay registro abierto ni
   recuperación de contraseña self-service para el alumnado: si un alumno
@@ -93,17 +128,17 @@ emite una sesión de Supabase):
    Auth para ese usuario y la devuelve en el mismo formato que el login
    del personal.
 
-Cómo generar la sesión sin conocer una contraseña de Supabase (a decidir
-en la implementación, opción preferida marcada):
+Cómo generar la sesión sin conocer una contraseña de Supabase:
 
-- **(Preferida)** Cada alumno tiene un usuario en `auth.users` con un
-  correo interno sintético (ej. `<identifier>@alumnos.invalid`) creado por
-  el administrador y una contraseña aleatoria desconocida. El backend, con
-  `service_role`, genera un enlace mágico (`generateLink`) y lo canjea
-  (`verifyOtp`) para obtener la sesión. El correo sintético nunca se usa
-  como buzón.
-- (Alternativa) JWT propio firmado por la API. Se descarta de entrada:
-  rompería la integración con RLS/`auth.uid()` de Supabase.
+- El alumno tiene su usuario en `auth.users` **con su correo real** y una
+  contraseña de Supabase aleatoria que ni él ni nadie usa (su contraseña
+  "de verdad" es la accesible). El backend, con `service_role`, genera un
+  enlace mágico (`generateLink`) sobre ese correo y lo canjea
+  (`verifyOtp`) para obtener la sesión.
+- (Descartado) Correo sintético: ya no hace falta, el alumnado tiene
+  correo como cualquier usuario.
+- (Descartado) JWT propio firmado por la API: rompería la integración
+  con RLS/`auth.uid()` de Supabase.
 
 ## 5. Formato de cada credencial (propuesta)
 
@@ -148,9 +183,14 @@ Endpoints previstos:
 | `GET /api/auth/me` | Todos | Perfil del usuario de la sesión |
 | `POST /api/auth/student/method` | Público | Dado un `identifier`, método que le toca y datos para pintarlo (catálogo si es pictogramas) |
 | `POST /api/auth/student/login` | Público | Verificar credencial accesible y emitir sesión |
-| `GET /api/auth/pictograms` | Público | Catálogo activo de pictogramas |
+| `GET /api/auth/pictograms` | Público | Catálogo activo de pictogramas (con `arasaac_id` para construir la imagen) |
 | `POST /api/auth/admin/students` | Solo `admin` | Alta de alumno: identificador, nombre, método y credencial inicial |
 | `PATCH /api/auth/admin/students/:id/login` | Solo `admin` | Cambiar método y/o credencial de un alumno (incluye "olvidó su PIN") |
+
+Estado de implementación: solo están implementados `POST /api/auth/login`
+y el catálogo como `GET /api/pictograms` (ruta real; no
+`GET /api/auth/pictograms`), además de `GET /api/health`.
+El resto de la tabla sigue siendo contrato previsto, no implementado.
 
 Errores: JSON uniforme `{ "statusCode": 401, "message": "..." }` con
 mensajes pensados para poder mostrarse/leerse en voz alta sin dar pistas
@@ -178,7 +218,7 @@ se valora responder igual para no filtrar qué identificadores existen
 - Baja lógica: un perfil con `deactivated_at` no puede entrar por ningún
   flujo.
 
-## 8. Configuración que necesitará el backend (al implementar)
+## 8. Configuración que usa el backend
 
 Variables de entorno de `apps/api` (nunca en el repo):
 
@@ -189,13 +229,13 @@ SUPABASE_SERVICE_ROLE_KEY=   # SOLO backend, secreta
 PORT=3000
 ```
 
-Dependencias previstas en `apps/api`: `@supabase/supabase-js` y validación
-(`class-validator`/`class-transformer`) — a instalar al implementar.
+Dependencias ya instaladas en `apps/api`: `@supabase/supabase-js` y
+validación (`class-validator`/`class-transformer`).
 
 ## 9. Preguntas abiertas para el equipo
 
-- **Q1.** ¿El correo sintético del alumnado sigue el formato
-  `<identifier>@alumnos.invalid` u otro dominio interno del centro?
+- ~~**Q1.** Correo sintético del alumnado~~ — **resuelta**: el alumnado
+  tiene correo real en `auth.users`; no hay correo sintético.
 - **Q2.** Longitudes exactas: ¿PIN fijo de 4 o 4–6? ¿Patrón mínimo 4 puntos
   confirmado? ¿Contraseña simple con mínimo (p. ej. 4 caracteres)?
 - **Q3.** ¿La cuadrícula del patrón es siempre 3×3 o se quiere configurable
@@ -213,10 +253,17 @@ Dependencias previstas en `apps/api`: `@supabase/supabase-js` y validación
 
 ## 10. Nota sobre el estado de la BD
 
-La migración `20261105094242 student_accessible_login` (enum
-`student_login_method`, columna `profiles.login_method`, índice único de
-`login_identifier` y tabla `student_credentials`) se aplicó en Supabase en
-una sesión anterior a que se aclarara que esta entrega era **solo
-documentación**. Queda registrada aquí como parte del estado actual: no
-hay código de API que la use todavía. Si el equipo prefiere partir de
-cero, se puede revertir con una migración nueva; no hacerlo a mano.
+Migraciones de esta iteración, todas aplicadas y verificadas:
+
+- `20261105094242 student_accessible_login` — enum `student_login_method`,
+  `profiles.login_method`, índice único de `login_identifier` y tabla
+  `student_credentials`.
+- `20261105122025 login_review_fixes_c1_c2_c4_c5` — C1, C2, C4 y C5.
+- `20261105122036 pictograms_arasaac_ids` — C3.
+- `20261105122105 fix_student_credentials_guard_null_method` — corrección
+  del guardia C5 con `login_method` a `NULL` (detectado en pruebas).
+
+Ya hay código de API que usa parte de este esquema: el login de
+personal (`POST /api/auth/login`) y el catálogo de pictogramas
+(`GET /api/pictograms`). El login accesible del alumnado sigue
+pendiente de implementar.
