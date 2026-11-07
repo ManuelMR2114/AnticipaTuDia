@@ -1,84 +1,88 @@
+import type { ReactNode } from 'react';
+import PanelLateral from './PanelLateral';
+import BotonAccesibilidad from './BotonAccesibilidad';
+
 interface SeleccionRolProps {
   onSeleccionarEstudiante: () => void;
 }
 
+interface Rol {
+  id: string;
+  nombre: string;
+  descripcion: ReactNode;
+  /** Clase completa (Tailwind necesita ver el nombre entero para generarla). */
+  color: string;
+  onClick?: () => void;
+}
+
+const CLASE_TARJETA =
+  'anillo-foco flex h-[clamp(110px,13vh,150px)] max-w-[340px] min-w-[240px] flex-[1_1_0] items-center rounded-[28px] border border-borde px-[clamp(16px,1.9vw,38px)] text-left transition-[transform,box-shadow] duration-200 ease-[ease] hover:-translate-y-1 hover:shadow-[0_6px_14px_rgba(0,0,0,0.15)]';
+
 export default function SeleccionRol({ onSeleccionarEstudiante }: SeleccionRolProps) {
+  const roles: Rol[] = [
+    {
+      id: 'estudiante',
+      nombre: 'Estudiante',
+      descripcion: 'Accede a tu agenda',
+      color: 'bg-azul-claro',
+      onClick: onSeleccionarEstudiante,
+    },
+    {
+      id: 'tutor',
+      nombre: 'Tutor',
+      descripcion: (
+        <>
+          Acompaña y<br />
+          Organiza
+        </>
+      ),
+      color: 'bg-verde-agua',
+    },
+    {
+      id: 'familia',
+      nombre: 'Familia',
+      descripcion: 'Consulta y da apoyo',
+      color: 'bg-salmon',
+    },
+  ];
+
   return (
+    <div className="flex min-h-screen w-full">
+      <PanelLateral />
 
-    <div className="contenedor-inicio">
-      {/*P izq*/}
-      <aside className="panel-lateral">
+      {/* Parte derecha */}
+      <main className="relative flex w-[62%] flex-col items-center justify-center bg-crema">
+        <BotonAccesibilidad />
 
-        <div className="contenedor-logo">
-          <img src="/logo-app-sin-fondo.png" alt="Logo AnticipaTuDía" className="logo" />
-        </div>
+        <div className="w-full px-[2.5vw] text-center">
+          <h2 className="mb-[4.5vh] text-subtitulo font-normal text-[#111] italic">
+            BIENVENIDO A ANTICIPA TU DIA
+          </h2>
+          <h3 className="mb-[7vh] text-titulo font-bold text-black">
+            ¿Como quieres entrar?
+          </h3>
 
-        <div className="texto-lateral">
-
-          <p className="subtitulo-lateral">TU AGENDA, TU MANERA</p>
-
-          <h1 className="titulo-lateral">
-            Organiza tu día<br />
-            Avanza a tu ritmo
-          </h1>
-
-          <p className="descripcion-lateral">
-            Una agenda accesible y personal<br />
-            para acompañarte en cada paso
-          </p>
-
-        </div>
-
-      </aside>
-
-      {/* Parte der*/}
-      <main className="panel-principal">
-
-        <header className="cabecera-principal">
-          
-          <button className="btn-accesibilidad" aria-label="Opciones de accesibilidad">
-            <span className="texto-acc">Accesibilidad</span>
-            <span className="icono-acc-a" aria-hidden="true">A</span>
-            <span className="contraste-acc" aria-hidden="true"></span>
-          </button>
-          
-        </header>
-
-        <div className="contenido-principal">
-          <h2 className="texto-bienvenida">BIENVENIDO A ANTICIPA TU DIA</h2>
-          <h3 className="texto-pregunta">¿Como quieres entrar?</h3>
-
-          <div className="contenedor-roles">
-            <button className="btn-rol btn-estudiante" onClick={onSeleccionarEstudiante}>
-              <div className="espacio-icono"></div>
-              <div className="info-rol">
-                <h4>Estudiante</h4>
-                <p>Accede a tu agenda</p>
-              </div>
-            </button>
-
-            <button className="btn-rol btn-tutor">
-              <div className="espacio-icono"></div>
-              <div className="info-rol">
-                <h4>Tutor</h4>
-                <p>Acompaña y<br />Organiza</p>
-              </div>
-            </button>
-
-            <button className="btn-rol btn-familia">
-              <div className="espacio-icono"></div>
-              <div className="info-rol">
-                <h4>Familia</h4>
-                <p>Consulta y da apoyo</p>
-              </div>
-            </button>
-            
+          <div className="flex flex-wrap justify-center gap-[3.2vw]">
+            {roles.map((rol) => (
+              <button
+                key={rol.id}
+                className={`${CLASE_TARJETA} ${rol.color}`}
+                onClick={rol.onClick}
+              >
+                <div className="size-[clamp(54px,3.8vw,74px)] shrink-0 rounded-2xl bg-white" />
+                <div className="min-w-0 flex-1 pl-3 text-center">
+                  <h4 className="mb-1.5 text-tarjeta font-bold text-black">
+                    {rol.nombre}
+                  </h4>
+                  <p className="text-tarjeta-detalle leading-[1.15] text-[#111]">
+                    {rol.descripcion}
+                  </p>
+                </div>
+              </button>
+            ))}
           </div>
-
         </div>
-
       </main>
-
     </div>
   );
 }
