@@ -27,6 +27,8 @@ export class SupabaseService {
     /**
      * Cliente con anon key, nuevo en cada llamada. Sirve para operaciones de
      * Auth (p. ej. signInWithPassword) sin contaminar el cliente admin.
+     * Es decir, este es el cliente que se usuará para los usuarios, el otro es el que se utilizará
+     * para las operaciones de administrador totales, no tiene limitaciones.
      */
     createAnonClient(): SupabaseClient {
         return createClient(
