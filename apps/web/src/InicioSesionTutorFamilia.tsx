@@ -1,17 +1,22 @@
 import PanelLateral from './PanelLateral';
 import BotonAccesibilidad from './BotonAccesibilidad';
 import { useState } from 'react';
+import type { SessionResponse, UserRole } from '@agenda/shared';
+
+export type RolPersonal = Extract<UserRole, 'admin' | 'tutor' | 'family'>;
 
 interface InicioSesionTutorFamiliaProps {
-  rol: 'tutor' | 'familia';
+  rol: RolPersonal;
   onVolver: () => void;
-  onLoginExitoso: () => void;
+  // Entrega la sesión a App para que sepa quién ha entrado
+  onLoginExitoso: (sessionData: SessionResponse) => void;
 }
 
 // Los dos campos (correo y contraseña) tienen exactamente el mismo estilo. Se definen estas constantes para no repetir.
-const claseInput = 'h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-borde bg-transparent px-5 text-[clamp(16px,1.1vw,22px)] text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-azul-oscuro';
-
+const claseInput = 'h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-borde bg-transparent px-5 text-[clamp(16px,1.1vw,22px)] text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-azul-oscuro disabled:opacity-50';
 const claseLabel = 'mb-[1.6vh] block text-[clamp(18px,1.5vw,30px)] font-semibold text-black';
+
+const API_URL = 'http://localhost:3000/api';  
 
 export default function InicioSesionTutorFamilia({
   rol,
@@ -23,8 +28,10 @@ export default function InicioSesionTutorFamilia({
   const [password, setPassword] = useState('');
   // Mensaje de error
   const [error, setError] = useState('');
+   // Para evitar envíos dobles en el formulario. Si es true es que esperamos a la API.
+  const [cargando, setCargando] = useState(false);
 
-  const procesarLogin = (e: React.FormEvent) => {
+  const procesarLogin = async (e: React.FormEvent) => {
     // Evita que el navegador recargue la página al enviar el formulario
     e.preventDefault();
 
@@ -36,12 +43,56 @@ export default function InicioSesionTutorFamilia({
 
     // Limpiamos el error anterior para que no se quede visible tras corregirlo
     setError('');
+    setCargando(true);
 
-    // AQUI LLAMADA AL BACKEND
-    console.log(`Iniciando sesión como ${rol}`, { email });
+    try {
 
-    // Avisamos para cambiar de pantalla
-    onLoginExitoso();
+        // Enviamos correo y contraseña a la API 
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        // Si la API responde con error
+        if (!response.ok) {
+
+          if (response.status === 401){
+
+            setError('Credenciales incorrectas');
+
+          } else if (response.status === 503){
+
+            setError('Servicio no disponible');
+
+          } else {
+
+            setError('Error al iniciar sesión');
+
+          }
+
+          return;
+        }
+
+        const sessionData: SessionResponse = await response.json();
+
+        // La API deja entrar a cualquier cuenta de personal, así que comprobamos que el rol sea el de esta pantalla
+        if (sessionData.user.role !== rol) {
+          setError('Rol incorrecto');
+          return;
+        }
+
+        onLoginExitoso(sessionData);
+
+    } catch {
+
+        setError('No se pudo conectar con el servidor');
+
+    } finally {
+        // Se emplea el finally porque pase lo que pase se debe desbloquear el formulario y para no repetir setCargando(false) varias veces (si hay un return por error, catch  o si todo sale perfecto), se pone aqui una sola vez.
+        setCargando(false);
+    }
+
   };
 
   return (
@@ -88,6 +139,7 @@ export default function InicioSesionTutorFamilia({
           <form
             onSubmit={procesarLogin}
             noValidate
+            aria-busy={cargando}
             className="flex w-[22.2vw] min-w-[300px] flex-col gap-[4.2vh]"
           >
             {/* Error  al fallar la validación  */}
@@ -112,6 +164,7 @@ export default function InicioSesionTutorFamilia({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={claseInput}
+                disabled={cargando}
               />
             </div>
 
@@ -127,6 +180,7 @@ export default function InicioSesionTutorFamilia({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={claseInput}
+                disabled={cargando}
               />
               <a
                 href="#"
@@ -141,13 +195,15 @@ export default function InicioSesionTutorFamilia({
               </a>
             </div>
 
-            {
-            /* Botón Entrar */}
+            {/* Botón Entrar */}
             <button
               type="submit"
               className="anillo-foco h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-azul-oscuro bg-azul-oscuro text-[clamp(16px,1.05vw,22px)] font-semibold text-white transition-transform hover:-translate-y-0.5"
+              disabled={cargando}
             >
-              Entrar
+
+              {cargando ? 'Comprobando...' : 'Entrar'}
+
             </button>
           </form>
         </div>
