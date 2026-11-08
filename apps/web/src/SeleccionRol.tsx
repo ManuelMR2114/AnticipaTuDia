@@ -6,6 +6,7 @@ interface SeleccionRolProps {
   onSeleccionarEstudiante: () => void;
   onSeleccionarTutor: () => void;
   onSeleccionarFamilia: () => void;
+  onSeleccionarAdmin: () => void;
 
 }
 
@@ -21,7 +22,7 @@ interface Rol {
 const CLASE_TARJETA =
   'anillo-foco flex h-[clamp(110px,13vh,150px)] max-w-[340px] min-w-[240px] flex-[1_1_0] items-center rounded-[28px] border border-borde px-[clamp(16px,1.9vw,38px)] text-left transition-[transform,box-shadow] duration-200 ease-[ease] hover:-translate-y-1 hover:shadow-[0_6px_14px_rgba(0,0,0,0.15)]';
 
-export default function SeleccionRol({ onSeleccionarEstudiante,onSeleccionarTutor,onSeleccionarFamilia }: SeleccionRolProps) {
+export default function SeleccionRol({ onSeleccionarEstudiante,onSeleccionarTutor,onSeleccionarFamilia,onSeleccionarAdmin }: SeleccionRolProps) {
   const roles: Rol[] = [
     {
       id: 'estudiante',
@@ -49,6 +50,15 @@ export default function SeleccionRol({ onSeleccionarEstudiante,onSeleccionarTuto
       color: 'bg-salmon',
       onClick: onSeleccionarFamilia,
     },
+    {
+      id: 'admin',
+      nombre: 'Administrador',
+      descripcion: 'Gestión del Sistema',
+      color: 'bg-amarillo-pastel',
+      onClick: onSeleccionarAdmin,
+    },
+
+
   ];
 
   return (
