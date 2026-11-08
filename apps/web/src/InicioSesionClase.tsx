@@ -1,33 +1,63 @@
+import { useEffect, useState } from 'react';
 import PanelLateral from './PanelLateral';
 import BotonAccesibilidad from './BotonAccesibilidad';
+
+const API_URL = 'http://localhost:3000/api';
 
 interface InicioSesionClaseProps {
   onVolver: () => void;
 }
 
+// Aula tal y como la devuelve la API (GET /classrooms)
 interface Clase {
-  id: number;
-  nombre: string;
-  grupo: string;
-  /** Clase completa de Tailwind (bg-...), definida en @theme dentro de index.css */
-  color: string;
+  id: string;
+  name: string;
+  groupName: string | null;
 }
 
-const CLASES: Clase[] = [
-  { id: 1, nombre: 'Aula Girasol', grupo: 'PTVAL - Grupo 1', color: 'bg-amarillo-pastel' },
-  { id: 2, nombre: 'Aula Delfín', grupo: 'PTVAL - Grupo 2', color: 'bg-azul-claro' },
-  { id: 3, nombre: 'Aula Bosque', grupo: 'PTVAL - Grupo 3', color: 'bg-verde-agua' },
-  { id: 4, nombre: 'Aula Volcán', grupo: 'PTVAL - Grupo 4', color: 'bg-salmon' },
-];
+// Colores de las tarjetas (clases completas para que Tailwind las genere).
+// Se asignan por posición, así la tabla no necesita una columna de color.
+const COLORES_TARJETA = ['bg-amarillo-pastel', 'bg-azul-claro', 'bg-verde-agua', 'bg-salmon'];
 
 // Inicial de la clase: "Aula Girasol" -> "G"
 const obtenerInicial = (nombre: string): string =>
   nombre.replace(/^Aula\s+/i, '').charAt(0).toUpperCase();
 
 export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) {
-  const manejarAcceso = (nombreClase: string): void => {
-    console.log(`Accediendo a ${nombreClase}`);
-    // Aquí irá la conexión con NestJS / Supabase
+  const [clases, setClases] = useState<Clase[]>([]);
+  const [cargando, setCargando] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Al abrir la pantalla, pide las aulas a la API
+  useEffect(() => {
+    // Permite cancelar la petición si el usuario sale de la pantalla antes de que termine
+    const controlador = new AbortController();
+
+    const cargarClases = async (): Promise<void> => {
+      try {
+        const respuesta = await fetch(`${API_URL}/classrooms`, { signal: controlador.signal });
+        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+
+        const datos: Clase[] = await respuesta.json();
+        setClases(datos);
+      } catch (e) {
+        // Una petición cancelada a propósito no es un error que mostrar
+        if ((e as Error).name !== 'AbortError') {
+          console.error('Error al cargar las clases:', e);
+          setError('No se han podido cargar las clases. Inténtalo de nuevo.');
+        }
+      } finally {
+        if (!controlador.signal.aborted) setCargando(false);
+      }
+    };
+
+    cargarClases();
+    return () => controlador.abort();
+  }, []);
+
+  const manejarAcceso = (clase: Clase): void => {
+    console.log(`Accediendo a ${clase.name} (${clase.id})`);
+    // Aquí irá el paso siguiente: elegir alumno / iniciar sesión en esta aula
   };
 
   return (
@@ -62,21 +92,40 @@ export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) 
             Selecciona el aula a la que perteneces
           </p>
 
+          {/* Estados: cargando / error / sin clases */}
+          {cargando && (
+            <p role="status" className="text-subtitulo text-[#111]">
+              Cargando clases…
+            </p>
+          )}
+          {error && (
+            <p role="alert" className="text-subtitulo text-[#111]">
+              {error}
+            </p>
+          )}
+          {!cargando && !error && clases.length === 0 && (
+            <p className="text-subtitulo text-[#111]">Todavía no hay clases disponibles.</p>
+          )}
+
           <div className="grid grid-cols-[repeat(2,minmax(0,332px))] justify-center gap-x-[7.8vw] gap-y-[7.9vh]">
-            {CLASES.map((clase) => (
+            {clases.map((clase, indice) => (
               <button
                 key={clase.id}
-                className={`anillo-foco flex h-[clamp(110px,13vh,150px)] w-full items-center gap-[clamp(12px,1.2vw,24px)] rounded-3xl border-2 border-borde px-[clamp(12px,1vw,20px)] text-left transition-[transform,box-shadow] duration-200 ease-[ease] hover:-translate-y-1 hover:shadow-[0_6px_14px_rgba(0,0,0,0.15)] ${clase.color}`}
-                onClick={() => manejarAcceso(clase.nombre)}
-                aria-label={`Acceder al ${clase.nombre}`}
+                className={`anillo-foco flex min-h-[clamp(110px,13vh,150px)] w-full items-center gap-[clamp(12px,1.2vw,24px)] rounded-3xl border-2 border-borde px-[clamp(12px,1vw,20px)] py-3 text-left transition-[transform,box-shadow] duration-200 ease-[ease] hover:-translate-y-1 hover:shadow-[0_6px_14px_rgba(0,0,0,0.15)] ${COLORES_TARJETA[indice % COLORES_TARJETA.length]}`}
+                onClick={() => manejarAcceso(clase)}
+                aria-label={`Acceder al ${clase.name}`}
               >
                 <div className="flex size-[clamp(54px,3.8vw,74px)] shrink-0 items-center justify-center rounded-2xl border-2 border-borde bg-azul-oscuro text-avatar font-bold text-white">
-                  {obtenerInicial(clase.nombre)}
+                  {obtenerInicial(clase.name)}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="mb-2 text-tarjeta font-bold text-black">{clase.nombre}</h3>
-                  <p className="text-tarjeta-detalle leading-[1.15] text-[#111]">{clase.grupo}</p>
+                  <h3 className="mb-2 text-tarjeta font-bold text-black">{clase.name}</h3>
+                  {clase.groupName && (
+                    <p className="text-tarjeta-detalle leading-[1.15] text-[#111]">
+                      {clase.groupName}
+                    </p>
+                  )}
                 </div>
 
                 <svg

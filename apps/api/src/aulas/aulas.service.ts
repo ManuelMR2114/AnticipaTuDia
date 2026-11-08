@@ -1,0 +1,52 @@
+import {
+    Injectable,
+    InternalServerErrorException,
+} from '@nestjs/common';
+
+import { SupabaseService } from '../supabase/supabase.service.js';
+
+// Aula tal y como se envía al front (camelCase, igual que Pictogram).
+// Más adelante conviene moverla a @agenda/shared para compartirla con la web.
+export interface Classroom {
+    id: string;
+    name: string;
+    groupName: string | null;
+}
+
+// Fila de la tabla "classrooms" en Supabase (snake_case)
+interface ClassroomRow {
+    id: string;
+    name: string;
+    group_name: string | null;
+}
+
+@Injectable()
+export class ClassroomsService {
+    constructor(
+        private readonly supabaseService: SupabaseService,
+    ) { }
+
+    async findAll(): Promise<Classroom[]> {
+        const supabase = this.supabaseService.admin;
+
+        const { data, error } = await supabase
+            .from('classrooms')
+            .select('id, name, group_name')
+            .not('name', 'is', null) // "name" admite nulos en la BD: ignoramos aulas sin nombre
+            .order('name', {
+                ascending: true,
+            });
+
+        if (error) {
+            throw new InternalServerErrorException(
+                'No se pudieron obtener las aulas',
+            );
+        }
+
+        return ((data ?? []) as ClassroomRow[]).map((classroom) => ({
+            id: classroom.id,
+            name: classroom.name,
+            groupName: classroom.group_name,
+        }));
+    }
+}
