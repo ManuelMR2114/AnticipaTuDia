@@ -1,73 +1,110 @@
-import { useEffect, useState } from 'react';
 import PanelLateral from './PanelLateral';
 import BotonAccesibilidad from './BotonAccesibilidad';
+import { useState } from 'react';
+import type { SessionResponse, UserRole } from '@agenda/shared';
 
-const API_URL = 'http://localhost:3000/api';
+export type RolPersonal = Extract<UserRole, 'admin' | 'tutor' | 'family'>;
 
-interface InicioSesionClaseProps {
+interface InicioSesionTutorFamiliaProps {
+  rol: RolPersonal;
   onVolver: () => void;
+  // Entrega la sesión a App para que sepa quién ha entrado
+  onLoginExitoso: (sessionData: SessionResponse) => void;
 }
 
-// Aula tal y como la devuelve la API (GET /classrooms)
-// ⚠️ Ajusta los nombres de campo a lo que devuelva el backend
-interface Clase {
-  id: string;
-  name: string;
-  group_name: string | null;
-}
+// Los dos campos (correo y contraseña) tienen exactamente el mismo estilo. Se definen estas constantes para no repetir.
+const claseInput = 'h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-borde bg-transparent px-5 text-[clamp(16px,1.1vw,22px)] text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-azul-oscuro disabled:opacity-50';
+const claseLabel = 'mb-[1.6vh] block text-[clamp(18px,1.5vw,30px)] font-semibold text-black';
 
-// Colores de las tarjetas (clases completas para que Tailwind las genere).
-// Se asignan por posición, así la tabla no necesita una columna de color.
-const COLORES_TARJETA = ['bg-amarillo-pastel', 'bg-azul-claro', 'bg-verde-agua', 'bg-salmon'];
+const API_URL = 'http://localhost:3000/api';  
 
-// Inicial de la clase: "Aula Girasol" -> "G"
-const obtenerInicial = (nombre: string): string =>
-  nombre.replace(/^Aula\s+/i, '').charAt(0).toUpperCase();
+export default function InicioSesionTutorFamilia({
+  rol,
+  onVolver,
+  onLoginExitoso,
+}: InicioSesionTutorFamiliaProps) {
+  // Estado de los campos
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  // Mensaje de error
+  const [error, setError] = useState('');
+   // Para evitar envíos dobles en el formulario. Si es true es que esperamos a la API.
+  const [cargando, setCargando] = useState(false);
 
-export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) {
-  const [clases, setClases] = useState<Clase[]>([]);
-  const [cargando, setCargando] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const procesarLogin = async (e: React.FormEvent) => {
+    // Evita que el navegador recargue la página al enviar el formulario
+    e.preventDefault();
 
-  // Al abrir la pantalla, pide las aulas a la API
-  useEffect(() => {
-    // Permite cancelar la petición si el usuario sale de la pantalla antes de que termine
-    const controlador = new AbortController();
+    // Validamos campos 
+    if (!email || !password) {
+      setError('Por favor, introduce tu correo y contraseña.');
+      return;
+    }
 
-    const cargarClases = async (): Promise<void> => {
-      try {
-        const respuesta = await fetch(`${API_URL}/classrooms`, { signal: controlador.signal });
-        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+    // Limpiamos el error anterior para que no se quede visible tras corregirlo
+    setError('');
+    setCargando(true);
 
-        const datos: Clase[] = await respuesta.json();
-        setClases(datos);
-      } catch (e) {
-        // Una petición cancelada a propósito no es un error que mostrar
-        if ((e as Error).name !== 'AbortError') {
-          console.error('Error al cargar las clases:', e);
-          setError('No se han podido cargar las clases. Inténtalo de nuevo.');
+    try {
+
+        // Enviamos correo y contraseña a la API 
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        // Si la API responde con error
+        if (!response.ok) {
+
+          if (response.status === 401){
+
+            setError('Credenciales incorrectas');
+
+          } else if (response.status === 503){
+
+            setError('Servicio no disponible');
+
+          } else {
+
+            setError('Error al iniciar sesión');
+
+          }
+
+          return;
         }
-      } finally {
-        if (!controlador.signal.aborted) setCargando(false);
-      }
-    };
 
-    cargarClases();
-    return () => controlador.abort();
-  }, []);
+        const sessionData: SessionResponse = await response.json();
 
-  const manejarAcceso = (clase: Clase): void => {
-    console.log(`Accediendo a ${clase.name} (${clase.id})`);
-    // Aquí irá el paso siguiente: elegir alumno / iniciar sesión en esta aula
+        // La API deja entrar a cualquier cuenta de personal, así que comprobamos que el rol sea el de esta pantalla
+        if (sessionData.user.role !== rol) {
+          setError('Rol incorrecto');
+          return;
+        }
+
+        onLoginExitoso(sessionData);
+
+    } catch {
+
+        setError('No se pudo conectar con el servidor');
+
+    } finally {
+        // Se emplea el finally porque pase lo que pase se debe desbloquear el formulario y para no repetir setCargando(false) varias veces (si hay un return por error, catch  o si todo sale perfecto), se pone aqui una sola vez.
+        setCargando(false);
+    }
+
   };
 
   return (
     <div className="flex min-h-screen w-full">
+      {/* Panel izquierda */}
       <PanelLateral />
 
-      <main className="relative flex w-[62%] flex-col items-center justify-center bg-crema">
+      {/* Zona derecha*/}
+      <main className="relative flex w-[62%] flex-col justify-center bg-crema">
+        {/* Botón Volver  */}
         <button
-          className="anillo-foco absolute top-[7vh] left-[4.9vw] flex size-[clamp(56px,4.5vw,90px)] items-center justify-center rounded-full border-2 border-borde bg-transparent text-borde transition-[transform,background-color] duration-200 ease-[ease] hover:-translate-x-[3px] hover:bg-black/5"
+          className="anillo-foco absolute top-[5.6vh] left-[2.8vw] flex size-[clamp(56px,4.5vw,90px)] items-center justify-center rounded-full border-2 border-borde bg-transparent text-borde transition-[transform,background-color] duration-200 ease-[ease] hover:-translate-x-[3px] hover:bg-black/5"
           onClick={onVolver}
           aria-label="Volver a la selección de rol"
         >
@@ -87,64 +124,88 @@ export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) 
 
         <BotonAccesibilidad />
 
-        <div className="w-full px-[2.5vw] text-center">
-          <h2 className="mb-[7vh] text-titulo font-bold text-black">Elige tu clase</h2>
-          <p className="mb-[7vh] text-subtitulo font-normal text-[#111] italic">
-            Selecciona el aula a la que perteneces
-          </p>
-
-          {/* Estados: cargando / error / sin clases */}
-          {cargando && (
-            <p role="status" className="text-subtitulo text-[#111]">
-              Cargando clases…
+        <div className="pl-[9vw]">
+          
+          <div className="mb-[5.1vh] text-left">
+            <h2 className="mb-[1.1vh] text-titulo font-bold leading-tight text-black">
+              Te damos la bienvenida
+            </h2>
+            <p className="text-subtitulo font-normal italic text-black">
+              Introduce tus datos para entrar en tu espacio
             </p>
-          )}
-          {error && (
-            <p role="alert" className="text-subtitulo text-[#111]">
-              {error}
-            </p>
-          )}
-          {!cargando && !error && clases.length === 0 && (
-            <p className="text-subtitulo text-[#111]">Todavía no hay clases disponibles.</p>
-          )}
-
-          <div className="grid grid-cols-[repeat(2,minmax(0,332px))] justify-center gap-x-[7.8vw] gap-y-[7.9vh]">
-            {clases.map((clase, indice) => (
-              <button
-                key={clase.id}
-                className={`anillo-foco flex min-h-[clamp(110px,13vh,150px)] w-full items-center gap-[clamp(12px,1.2vw,24px)] rounded-3xl border-2 border-borde px-[clamp(12px,1vw,20px)] py-3 text-left transition-[transform,box-shadow] duration-200 ease-[ease] hover:-translate-y-1 hover:shadow-[0_6px_14px_rgba(0,0,0,0.15)] ${COLORES_TARJETA[indice % COLORES_TARJETA.length]}`}
-                onClick={() => manejarAcceso(clase)}
-                aria-label={`Acceder al ${clase.name}`}
-              >
-                <div className="flex size-[clamp(54px,3.8vw,74px)] shrink-0 items-center justify-center rounded-2xl border-2 border-borde bg-azul-oscuro text-avatar font-bold text-white">
-                  {obtenerInicial(clase.name)}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <h3 className="mb-2 text-tarjeta font-bold text-black">{clase.name}</h3>
-                  {clase.group_name && (
-                    <p className="text-tarjeta-detalle leading-[1.15] text-[#111]">
-                      {clase.group_name}
-                    </p>
-                  )}
-                </div>
-
-                <svg
-                  className="size-[clamp(34px,2.4vw,48px)] shrink-0 text-borde"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="24" cy="24" r="22" />
-                  <path d="M14 24h20M26 15l9 9-9 9" />
-                </svg>
-              </button>
-            ))}
           </div>
+
+          {/* Formulario  */}
+          <form
+            onSubmit={procesarLogin}
+            noValidate
+            aria-busy={cargando}
+            className="flex w-[22.2vw] min-w-[300px] flex-col gap-[4.2vh]"
+          >
+            {/* Error  al fallar la validación  */}
+            {error && (
+              <div
+                role="alert"
+                className="rounded-xl border border-red-400 bg-red-100 p-3 text-sm font-medium text-red-700"
+              >
+                {error}
+              </div>
+            )}
+
+            { /* Correo*/}
+            <div>
+              <label htmlFor="correo" className={claseLabel}>
+                Correo Electronico
+              </label>
+              <input
+                id="correo"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={claseInput}
+                disabled={cargando}
+              />
+            </div>
+
+            { /* Contraseña y enlace de recuperación */}
+            <div>
+              <label htmlFor="password" className={claseLabel}>
+                Contraseña
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={claseInput}
+                disabled={cargando}
+              />
+              <a
+                href="#"
+                onClick={(e) => {
+                  // Evita saltar a "#" mientras no exista esa pantalla
+                  e.preventDefault();
+                  alert('Función de recuperación de contraseña');
+                }}
+                className="mt-[2.9vh] inline-block text-[clamp(13px,0.85vw,17px)] text-azul-oscuro underline"
+              >
+                He olvidado mi contraseña
+              </a>
+            </div>
+
+            {/* Botón Entrar */}
+            <button
+              type="submit"
+              className="anillo-foco h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-azul-oscuro bg-azul-oscuro text-[clamp(16px,1.05vw,22px)] font-semibold text-white transition-transform hover:-translate-y-0.5"
+              disabled={cargando}
+            >
+
+              {cargando ? 'Comprobando...' : 'Entrar'}
+
+            </button>
+          </form>
         </div>
       </main>
     </div>
