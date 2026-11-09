@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import PanelLateral from './PanelLateral';
 import BotonAccesibilidad from './BotonAccesibilidad';
 import TarjetaSeleccion from './TarjetaSeleccion';
-import type { Classroom, ClassroomStudent } from '@agenda/shared';
+import type { Classroom } from '@agenda/shared';
+import type { EstudianteConMetodo } from './metodoLogin';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -10,8 +11,10 @@ interface SeleccionEstudianteProps {
   // Aula elegida en la pantalla anterior
   aula: Classroom;
   onVolver: () => void;
+  // Mensaje si el alumno elegido no puede entrar todavía
+  aviso?: string | null;
   // Avisa a App de qué alumno se ha elegido
-  onSeleccionarEstudiante: (estudiante: ClassroomStudent) => void;
+  onSeleccionarEstudiante: (estudiante: EstudianteConMetodo) => void;
 }
 
 // Colores en el orden del diseño: rosa, azul, verde, salmón
@@ -29,9 +32,10 @@ const obtenerIniciales = (nombreCompleto: string): string =>
 export default function SeleccionEstudiante({
   aula,
   onVolver,
+  aviso,
   onSeleccionarEstudiante,
 }: SeleccionEstudianteProps) {
-  const [estudiantes, setEstudiantes] = useState<ClassroomStudent[]>([]);
+  const [estudiantes, setEstudiantes] = useState<EstudianteConMetodo[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +50,7 @@ export default function SeleccionEstudiante({
         });
         if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
 
-        const datos: ClassroomStudent[] = await respuesta.json();
+        const datos: EstudianteConMetodo[] = await respuesta.json();
         setEstudiantes(datos);
       } catch (e) {
         if ((e as Error).name !== 'AbortError') {
@@ -103,6 +107,11 @@ export default function SeleccionEstudiante({
           {error && (
             <p role="alert" className="text-subtitulo text-[#111]">
               {error}
+            </p>
+          )}
+          {aviso && (
+            <p role="alert" className="mb-[4vh] text-subtitulo font-semibold text-[#111]">
+              {aviso}
             </p>
           )}
           {!cargando && !error && estudiantes.length === 0 && (

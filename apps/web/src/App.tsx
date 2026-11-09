@@ -4,6 +4,8 @@ import type { Classroom, SessionResponse } from '@agenda/shared';
 import SeleccionRol from './SeleccionRol';
 import InicioSesionClase from './InicioSesionClase';
 import SeleccionEstudiante from './SeleccionEstudiante';
+import InicioSesionCodigo from './InicioSesionCodigo';
+import type { EstudianteConMetodo } from './metodoLogin';
 import InicioSesionTutorFamilia, { type RolPersonal } from './InicioSesionTutorFamilia';
 
 // Provider para guardar el tamaño de texto y el contraste para todas las pantallas
@@ -15,6 +17,7 @@ type Vista =
   | 'seleccion-rol'
   | 'inicio-clase'
   | 'seleccion-estudiante'
+  | 'login-estudiante-codigo'
   | 'login-tutor-familia-administrador';
 
 export default function App() {
@@ -26,6 +29,12 @@ export default function App() {
 
   // Aula que ha elegido el alumno (Classroom); la necesita la pantalla "¿Quién eres?" para pedir sus compañeros
   const [aulaSeleccionada, setAulaSeleccionada] = useState<Classroom | null>(null);
+
+  // Alumno que ha elegido en "¿Quién eres?"; lo necesita su pantalla de login
+  const [estudianteSeleccionado, setEstudianteSeleccionado] = useState<EstudianteConMetodo | null>(null);
+
+  // Aviso cuando el alumno no puede entrar todavía (sin método o método sin pantalla)
+  const [avisoLogin, setAvisoLogin] = useState<string | null>(null);
 
   // Guarda la sesión que devuelve la API al entrar.
   // [, setSesion]: no leemos el valor todavía, solo necesitamos la función para guardarlo.
@@ -80,14 +89,41 @@ export default function App() {
           <SeleccionEstudiante
             aula={aulaSeleccionada}
             onVolver={() => setVistaActual('inicio-clase')}
-            onSeleccionarEstudiante={(estudiante) => {
-              // TODO: siguiente paso del login del alumno (pictogramas)
-              console.log(`Alumno elegido: ${estudiante.fullName} (${estudiante.id})`);
+            aviso={avisoLogin}
+            onSeleccionarEstudiante={(estudiante: EstudianteConMetodo) => {
+              setAvisoLogin(null);
+              setEstudianteSeleccionado(estudiante);
+              // Cada alumno entra con su método (profiles.login_method)
+              switch (estudiante.loginMethod) {
+                case 'pin':
+                  setVistaActual('login-estudiante-codigo');
+                  break;
+                case null:
+                  setAvisoLogin(`${estudiante.fullName} aún no tiene método de acceso. Pide ayuda a tu tutor.`);
+                  break;
+                default:
+                  // pictogram, password y pattern: pantalla pendiente
+                  setAvisoLogin('Este método de acceso aún no está disponible.');
+              }
             }}
           />
         )}
         {/*---------------------PANTALLA ¿QUIÉN ERES?----------------------------*/}
 
+
+
+        {/*---------------------PANTALLA LOGIN ALUMNO (CÓDIGO)----------------------------*/}
+        {vistaActual === 'login-estudiante-codigo' && estudianteSeleccionado && (
+          <InicioSesionCodigo
+            estudiante={estudianteSeleccionado}
+            onVolver={() => setVistaActual('seleccion-estudiante')}
+            onLoginExitoso={(sessionData) => {
+              setSesion(sessionData);
+              console.log(`Acceso completado como ${sessionData.user.role}`);
+            }}
+          />
+        )}
+        {/*---------------------PANTALLA LOGIN ALUMNO (CÓDIGO)----------------------------*/}
 
 
 
