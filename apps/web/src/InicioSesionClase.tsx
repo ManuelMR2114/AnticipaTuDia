@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
 import PanelLateral from './PanelLateral';
 import BotonAccesibilidad from './BotonAccesibilidad';
+import TarjetaSeleccion from './TarjetaSeleccion';
+import type { Classroom } from '@agenda/shared';
 
 const API_URL = 'http://localhost:3000/api';
 
 interface InicioSesionClaseProps {
   onVolver: () => void;
-}
-
-// Aula tal y como la devuelve la API (GET /classrooms)
-interface Clase {
-  id: string;
-  name: string;
-  groupName: string | null;
+  // Avisa a App de qué aula ha elegido el alumno
+  onSeleccionarClase: (aula: Classroom) => void;
 }
 
 // Colores de las tarjetas (clases completas para que Tailwind las genere).
@@ -23,8 +20,8 @@ const COLORES_TARJETA = ['bg-amarillo-pastel', 'bg-azul-claro', 'bg-verde-agua',
 const obtenerInicial = (nombre: string): string =>
   nombre.replace(/^Aula\s+/i, '').charAt(0).toUpperCase();
 
-export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) {
-  const [clases, setClases] = useState<Clase[]>([]);
+export default function InicioSesionClase({ onVolver, onSeleccionarClase }: InicioSesionClaseProps) {
+  const [clases, setClases] = useState<Classroom[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +35,7 @@ export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) 
         const respuesta = await fetch(`${API_URL}/classrooms`, { signal: controlador.signal });
         if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
 
-        const datos: Clase[] = await respuesta.json();
+        const datos: Classroom[] = await respuesta.json();
         setClases(datos);
       } catch (e) {
         // Una petición cancelada a propósito no es un error que mostrar
@@ -54,11 +51,6 @@ export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) 
     cargarClases();
     return () => controlador.abort();
   }, []);
-
-  const manejarAcceso = (clase: Clase): void => {
-    console.log(`Accediendo a ${clase.name} (${clase.id})`);
-    // Aquí irá el paso siguiente: elegir alumno / iniciar sesión en esta aula
-  };
 
   return (
     <div className="flex min-h-screen w-full">
@@ -109,39 +101,15 @@ export default function InicioSesionClase({ onVolver }: InicioSesionClaseProps) 
 
           <div className="grid grid-cols-[repeat(2,minmax(0,332px))] justify-center gap-x-[7.8vw] gap-y-[7.9vh]">
             {clases.map((clase, indice) => (
-              <button
+              <TarjetaSeleccion
                 key={clase.id}
-                className={`anillo-foco flex min-h-[clamp(110px,13vh,150px)] w-full items-center gap-[clamp(12px,1.2vw,24px)] rounded-3xl border-2 border-borde px-[clamp(12px,1vw,20px)] py-3 text-left transition-[transform,box-shadow] duration-200 ease-[ease] hover:-translate-y-1 hover:shadow-[0_6px_14px_rgba(0,0,0,0.15)] ${COLORES_TARJETA[indice % COLORES_TARJETA.length]}`}
-                onClick={() => manejarAcceso(clase)}
-                aria-label={`Acceder al ${clase.name}`}
-              >
-                <div className="flex size-[clamp(54px,3.8vw,74px)] shrink-0 items-center justify-center rounded-2xl border-2 border-borde bg-azul-oscuro text-avatar font-bold text-white">
-                  {obtenerInicial(clase.name)}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <h3 className="mb-2 text-tarjeta font-bold text-black">{clase.name}</h3>
-                  {clase.groupName && (
-                    <p className="text-tarjeta-detalle leading-[1.15] text-[#111]">
-                      {clase.groupName}
-                    </p>
-                  )}
-                </div>
-
-                <svg
-                  className="size-[clamp(34px,2.4vw,48px)] shrink-0 text-borde"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="24" cy="24" r="22" />
-                  <path d="M14 24h20M26 15l9 9-9 9" />
-                </svg>
-              </button>
+                color={COLORES_TARJETA[indice % COLORES_TARJETA.length]}
+                inicial={obtenerInicial(clase.name)}
+                titulo={clase.name}
+                subtitulo={clase.groupName}
+                ariaLabel={`Acceder al ${clase.name}`}
+                onClick={() => onSeleccionarClase(clase)}
+              />
             ))}
           </div>
         </div>

@@ -1,9 +1,12 @@
-/* Tipografía*/
+/* Tipografía: Sansation (pesos 300, 400 y 700, con cursivas) */
 @import url('https://fonts.googleapis.com/css2?family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
 @import "tailwindcss";
 
-/*paleta, tipografia y tamaños  del proyecto*/
+/* Paleta, tipografía y tamaños fluidos del proyecto.
+   Cada variable genera sus clases: --color-crema → bg-crema, text-crema, border-crema...
+   --text-titulo → text-titulo, etc. */
 @theme {
+  /* Colores */
   --color-azul-principal: #6b9ec8;
   --color-azul-oscuro: #1b385a;
   --color-rosa-palo: #ffdaf3;
@@ -14,10 +17,11 @@
   --color-crema: #f8f5e9;
   --color-borde: #1a1a1a;
 
+  /* Fuente por defecto de toda la app */
   --font-sans: 'Sansation', 'Montserrat', 'Noto Sans', sans-serif;
 
-
-  /*todos los textos se multiplican por --escala-texto para el boton de accesibilidad*/
+  /* Tamaños de texto fluidos (clamp = mínimo, ideal según ancho de pantalla, máximo).
+     Todos se multiplican por --escala-texto, que cambia con el botón de accesibilidad. */
   --text-titulo: calc(clamp(2.2rem, 3.5vw, 4.2rem) * var(--escala-texto));
   --text-subtitulo: calc(clamp(1.1rem, 1.5vw, 1.8rem) * var(--escala-texto));
   --text-lateral-sub: calc(clamp(1rem, 1.5vw, 1.8rem) * var(--escala-texto));
@@ -28,6 +32,7 @@
 }
 
 @layer base {
+  /* La app ocupa siempre el 100% de la altura de la ventana */
   html,
   body,
   #root {
@@ -38,30 +43,38 @@
     line-height: normal;
   }
 
+  /* Fondo crema y fuente Sansation en toda la app; evita el scroll horizontal */
   body {
     @apply overflow-x-hidden bg-crema font-sans;
   }
 
+  /* Cursor de mano en todos los botones activos */
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
 
-  /*el estado vive en <html data-texto="..." data-contraste="..."> 
-  (lo pone AccesibilidadProvider). */
+  /* ---------- Accesibilidad ----------
+     El estado vive en <html data-texto="..." data-contraste="...">
+     (lo pone AccesibilidadProvider). */
+
+  /* Escala de texto: normal por defecto */
   :root {
     --escala-texto: 1;
   }
 
+  /* Texto grande: +15% */
   :root[data-texto='grande'] {
     --escala-texto: 1.15;
   }
 
+  /* Texto muy grande: +30% */
   :root[data-texto='muy-grande'] {
     --escala-texto: 1.3;
   }
 
-  /*alto contraste, fondo blanco, azul casi negro y colores de tarjeta mas intensos */
+  /* Alto contraste: fondo blanco, azul casi negro y colores de tarjeta más intensos.
+     Al redefinir las variables del tema, cambian todas las clases bg-*, text-* y border-* */
   :root[data-contraste='alto'] {
     --color-crema: #ffffff;
     --color-azul-oscuro: #000c1f;
@@ -73,6 +86,7 @@
   }
 }
 
+/* Anillo visible al navegar con teclado (clase "anillo-foco") */
 @utility anillo-foco {
   &:focus-visible {
     outline: 3px solid var(--color-azul-oscuro);
