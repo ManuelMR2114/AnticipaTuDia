@@ -5,6 +5,7 @@ import SeleccionRol from './SeleccionRol';
 import InicioSesionClase from './InicioSesionClase';
 import SeleccionEstudiante from './SeleccionEstudiante';
 import InicioSesionCodigo from './InicioSesionCodigo';
+import InicioSesionPictogramas from './InicioSesionPictogramas';
 import type { EstudianteConMetodo } from './metodoLogin';
 import InicioSesionTutorFamilia, { type RolPersonal } from './InicioSesionTutorFamilia';
 
@@ -18,6 +19,7 @@ type Vista =
   | 'inicio-clase'
   | 'seleccion-estudiante'
   | 'login-estudiante-codigo'
+  | 'login-estudiante-pictograma'
   | 'login-tutor-familia-administrador';
 
 export default function App() {
@@ -98,6 +100,9 @@ export default function App() {
                 case 'pin':
                   setVistaActual('login-estudiante-codigo');
                   break;
+                case 'pictogram':
+                  setVistaActual('login-estudiante-pictograma');
+                  break;
                 case null:
                   setAvisoLogin(`${estudiante.fullName} aún no tiene método de acceso. Pide ayuda a tu tutor.`);
                   break;
@@ -115,6 +120,19 @@ export default function App() {
         {/*---------------------PANTALLA LOGIN ALUMNO (CÓDIGO)----------------------------*/}
         {vistaActual === 'login-estudiante-codigo' && estudianteSeleccionado && (
           <InicioSesionCodigo
+            estudiante={estudianteSeleccionado}
+            onVolver={() => setVistaActual('seleccion-estudiante')}
+            onLoginExitoso={(sessionData) => {
+              setSesion(sessionData);
+              console.log(`Acceso completado como ${sessionData.user.role}`);
+            }}
+          />
+        )}
+        {/*---------------------PANTALLA LOGIN ALUMNO (CÓDIGO)----------------------------*/}
+
+         {/*---------------------PANTALLA LOGIN ALUMNO (PICTOGRAMA)----------------------------*/}
+        {vistaActual === 'login-estudiante-pictograma' && estudianteSeleccionado && (
+          <InicioSesionPictogramas
             estudiante={estudianteSeleccionado}
             onVolver={() => setVistaActual('seleccion-estudiante')}
             onLoginExitoso={(sessionData) => {

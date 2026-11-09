@@ -4,19 +4,21 @@ import { useState, useEffect } from 'react';
 import type { SessionResponse, Pictogram } from '@agenda/shared';
 
 interface InicioSesionPictogramasProps {
-  // identificador del alumno elegido en la pantalla anterior para que la API sepa a quien verificar
-  identificador: string;
+  // Alumno elegido en "¿Quién eres?"
+  estudiante: EstudianteConMetodo;
   onVolver: () => void;
   onLoginExitoso: (sessionData: SessionResponse) => void;
 }
 
 const API_URL = 'http://localhost:3000/api';
+// Login de alumno con PICTOGRAMA (login_method = 'pictogram').
+const RUTA_LOGIN_PICTOGRAMA = '/auth/student/pictogramas';
 
 // Numero de pictogramas que se muestran y que forman la contraseña. De momento, establecemos 3 fijos.
 const Numero_Pictogramas_contrasena = 3;
 
 export default function InicioSesionPictogramas({
-  identificador,
+  estudiante,
   onVolver,
   onLoginExitoso,
 }: InicioSesionPictogramasProps) {
@@ -90,11 +92,11 @@ export default function InicioSesionPictogramas({
     setVerificando(true);
     try {
 
-      const response = await fetch(`${API_URL}/auth/student/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: identificador, credential: nuevaSeleccion }),
-      });
+        const response = await fetch(`${API_URL}${RUTA_LOGIN_PICTOGRAMA}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentId: estudiante.id, pictogramas: nuevaSeleccion }),
+        });
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -188,13 +190,7 @@ export default function InicioSesionPictogramas({
                 // Posición en la que el alumno lo ha tocado y se pone -1 si todavía no lo ha tocado
                 const indice = seleccion.indexOf(pic.id);
 
-                if(indice !== -1){
-
-                   const orden = indice + 1;
-
-                } else {
-                   const orden = null;
-                }
+                const orden = indice !== -1 ? indice + 1 : null;
 
                 return (
                   <div key={pic.id} className="flex flex-col items-center">
