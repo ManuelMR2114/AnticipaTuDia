@@ -3,15 +3,8 @@ import {
     InternalServerErrorException,
 } from '@nestjs/common';
 
+import type { Classroom } from '@agenda/shared';
 import { SupabaseService } from '../supabase/supabase.service.js';
-
-// Aula tal y como se envía al front (camelCase, igual que Pictogram).
-// Más adelante conviene moverla a @agenda/shared para compartirla con la web.
-export interface Classroom {
-    id: string;
-    name: string;
-    groupName: string | null;
-}
 
 // Fila de la tabla "classrooms" en Supabase (snake_case)
 interface ClassroomRow {
