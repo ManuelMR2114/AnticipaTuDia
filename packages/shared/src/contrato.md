@@ -5,6 +5,7 @@ Endpoints que el frontend necesita y que todavía no existen.
 | Endpoint | Pantalla | HU | Estado |
 |---|---|---|---|
 | `GET /api/classrooms/:id/students` | ¿Quién eres? | HU-05 | Pendiente |
+| `POST /api/auth/student/pin` | Confirma que eres tú (código) | HU-05 | Pendiente |
 
 ---
 
@@ -31,3 +32,27 @@ Alumnos de un aula, para que el estudiante toque su tarjeta en "¿Quién eres?".
 **Errores:** `400` si el `id` no es un uuid, `500` si falla la base de datos.
 
 **Tablas:** `student-classroom` (une alumno y aula) y `profiles`.
+
+---
+
+
+## `POST /api/auth/student/pin`
+
+Login de un alumno con `login_method = 'pin'`. Es **público**.
+
+**Entrada (JSON):**
+```json
+{ "studentId": "0b6f1c1e-6f0d-4c1a-9a53-1f3f6c0a7e11", "pin": "1234" }
+```
+
+**Salida `200`:** `SessionResponse` (el mismo que devuelve `/auth/login`).
+
+**Reglas:**
+- Comprobar que el alumno existe, es `role = 'student'`, está activo y tiene `login_method = 'pin'`.
+- Comparar el PIN con `student_credentials.credential_hash`. Nunca guardar ni devolver el PIN en claro.
+- Mismo `401` si el alumno no existe, no usa PIN o el PIN es incorrecto, para no revelar cuál de los casos es.
+- Limitar intentos por alumno e IP, porque un PIN corto se adivina por fuerza bruta.
+
+**Errores:** `400` si falta `studentId` o `pin`, `401` credenciales incorrectas, `429` demasiados intentos, `503` si falla el servicio.
+
+**Tablas:** `profiles` y `student_credentials`.
