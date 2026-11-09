@@ -6,6 +6,7 @@ import InicioSesionClase from './InicioSesionClase';
 import SeleccionEstudiante from './SeleccionEstudiante';
 import InicioSesionCodigo from './InicioSesionCodigo';
 import InicioSesionPictogramas from './InicioSesionPictogramas';
+import InicioSesionPatron from './InicioSesionPatron';
 import type { EstudianteConMetodo } from './metodoLogin';
 import InicioSesionTutorFamilia, { type RolPersonal } from './InicioSesionTutorFamilia';
 
@@ -20,6 +21,7 @@ type Vista =
   | 'seleccion-estudiante'
   | 'login-estudiante-codigo'
   | 'login-estudiante-pictograma'
+  | 'login-estudiante-patron'
   | 'login-tutor-familia-administrador';
 
 export default function App() {
@@ -103,11 +105,14 @@ export default function App() {
                 case 'pictogram':
                   setVistaActual('login-estudiante-pictograma');
                   break;
+                case 'pattern':
+                  setVistaActual('login-estudiante-patron');
+                  break;
                 case null:
                   setAvisoLogin(`${estudiante.fullName} aún no tiene método de acceso. Pide ayuda a tu tutor.`);
                   break;
                 default:
-                  // pictogram, password y pattern: pantalla pendiente
+                  // password: pantalla pendiente
                   setAvisoLogin('Este método de acceso aún no está disponible.');
               }
             }}
@@ -141,7 +146,22 @@ export default function App() {
             }}
           />
         )}
-        {/*---------------------PANTALLA LOGIN ALUMNO (CÓDIGO)----------------------------*/}
+        {/*---------------------PANTALLA LOGIN ALUMNO (PICTOGRAMA)----------------------------*/}
+
+
+
+        {/*---------------------PANTALLA LOGIN ALUMNO (PATRÓN)----------------------------*/}
+        {vistaActual === 'login-estudiante-patron' && estudianteSeleccionado && (
+          <InicioSesionPatron
+            estudiante={estudianteSeleccionado}
+            onVolver={() => setVistaActual('seleccion-estudiante')}
+            onLoginExitoso={(sessionData) => {
+              setSesion(sessionData);
+              console.log(`Acceso completado como ${sessionData.user.role}`);
+            }}
+          />
+        )}
+        {/*---------------------PANTALLA LOGIN ALUMNO (PATRÓN)----------------------------*/}
 
 
 

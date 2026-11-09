@@ -36,7 +36,7 @@ export default function InicioSesionPictogramas({
   
   const cargarPictogramas = async () => {
     try {
-        const response = await fetch(`${API_URL}/pictograms`);
+        const response = await fetch(`${API_URL}/pictograms/student/${estudiante.id}`);
 
         // Si la API falla, avisamos y salimos
         if (!response.ok) {
