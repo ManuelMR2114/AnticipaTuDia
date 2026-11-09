@@ -23,3 +23,16 @@ export interface Pictogram {
   imageUrl: string | null;
   sortOrder: number;
 }
+
+//GET /classrooms 
+export interface Classroom {
+  id: string;
+  name: string;
+  groupName: string | null;
+}
+
+//GET /classrooms/:id/students 
+export interface ClassroomStudent {
+  id: string;
+  fullName: string;
+}
