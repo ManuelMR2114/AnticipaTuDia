@@ -90,37 +90,37 @@ export class ClassroomsService {
     }
 
     async findByClass(classId: string): Promise<ClassroomStudent[]> {
-    const supabase = this.supabaseService.admin;
+        const supabase = this.supabaseService.admin;
 
-    // 1. Consultamos la tabla 'student-classroom' filtrando por el id del aula
-    const { data, error } = await supabase
-      .from('student-classroom')
-      .select(`
-        student,
-        profiles!inner (
-          id,
-          full_name
-        )
-      `)
-      .eq('classroom', classId);
+        // 1. Consultamos la tabla 'student-classroom' filtrando por el id del aula
+        const { data, error } = await supabase
+        .from('student-classroom')
+        .select(`
+            student,
+            profiles!inner (
+            id,
+            full_name
+            )
+        `)
+        .eq('classroom', classId);
 
-    if (error) {
-      throw new InternalServerErrorException('Error al obtener los estudiantes del aula');
+        if (error) {
+        throw new InternalServerErrorException('Error al obtener los estudiantes del aula');
+        }
+
+        // 2. Si no hay registros asociados o la lista viene vacía
+        if (!data || data.length === 0) {
+        throw new NotFoundException(`No se encontraron estudiantes para el aula con ID ${classId}`);
+        }
+
+        const rows = data as unknown as StudentProfileRow[];
+
+        // 3. Mapeamos los resultados al contrato ClassroomStudent[] de @agenda/shared
+        return rows.map((row) => ({
+            id: row.profiles.id,
+            fullName: row.profiles.full_name,
+        }));
     }
-
-    // 2. Si no hay registros asociados o la lista viene vacía
-    if (!data || data.length === 0) {
-      throw new NotFoundException(`No se encontraron estudiantes para el aula con ID ${classId}`);
-    }
-
-    const rows = data as unknown as StudentProfileRow[];
-
-    // 3. Mapeamos los resultados al contrato ClassroomStudent[] de @agenda/shared
-    return rows.map((row) => ({
-      id: row.profiles.id,
-      fullName: row.profiles.full_name,
-    }));
-  }
 
     
 }
