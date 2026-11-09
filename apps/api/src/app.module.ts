@@ -6,6 +6,7 @@ import { validateEnv } from './supabase/env.validation.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ClassroomsModule } from './aulas/aulas.module.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ClassroomsModule } from './aulas/aulas.module.js';
     PictogramsModule,
     AuthModule,
     ClassroomsModule,
+    UsersModule,
   ],
   controllers: [AppController],
 })
