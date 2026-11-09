@@ -35,4 +35,4 @@ export interface Classroom {
 export interface ClassroomStudent {
   id: string;
   fullName: string;
-}
+} // no es necesaria, si ya tenemos una clase classroom 
