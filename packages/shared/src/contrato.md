@@ -6,6 +6,7 @@ Endpoints que el frontend necesita y que todavía no existen.
 |---|---|---|---|
 | `GET /api/classrooms/:id/students` | ¿Quién eres? | HU-05 | Pendiente |
 | `POST /api/auth/student/pin` | Confirma que eres tú (código) | HU-05 | Pendiente |
+| `POST /api/auth/student/pictogramas` | Confirma que eres tú (pictogramas) | HU-05 | Pendiente |
 
 ---
 
@@ -56,3 +57,30 @@ Login de un alumno con `login_method = 'pin'`. Es **público**.
 **Errores:** `400` si falta `studentId` o `pin`, `401` credenciales incorrectas, `429` demasiados intentos, `503` si falla el servicio.
 
 **Tablas:** `profiles` y `student_credentials`.
+
+---
+
+## `POST /api/auth/student/pictogramas`
+
+Login de un alumno con `login_method = 'pictogram'`. Es **público**.
+
+**Entrada (JSON):**
+```json
+{
+  "studentId": "0b6f1c1e-6f0d-4c1a-9a53-1f3f6c0a7e11",
+  "pictogramas": ["pic-id-1", "pic-id-2", "pic-id-3"]
+}
+```
+
+**Salida `200`:** `SessionResponse` (el mismo que devuelve `/auth/login`).
+
+**Reglas:**
+- Comprobar que el alumno existe, es role = 'student', está activo y tiene login_method = 'pictogram'
+- Comparar la secuencia de pictogramas recibida con la combinación almacenada en las credenciales del estudiante (student_credentials). Nunca guardar ni devolver la secuencia en texto plano si va hasheada.
+- Mismo código 401 si el alumno no existe, no usa este método o la secuencia es incorrecta, para no revelar cuál de los casos es.
+- Limitar los intentos por alumno para evitar ataques de fuerza bruta.
+
+**Errores:** `400` si falta `studentId` o `pictogramas`, `401` credenciales incorrectas, `429` demasiados intentos, `503` si falla el servicio.
+
+**Tablas:** `profiles`, `student_credentials` y `pictograms`.
+
