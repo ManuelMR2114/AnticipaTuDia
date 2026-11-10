@@ -115,11 +115,10 @@ export class TasksController {
     }
 
     /**
-     * HU-12: eliminar una tarea. Solo el profesional que la asignó. Las tareas personales
-     * del alumno no las borra nadie (ni siquiera el propio alumno).
+     * HU-12: eliminar una tarea. Solo el profesional que la asignó.
      */
     @Delete(':id')
-    @Roles('tutor', 'teacher', 'specialist')
+    @Roles('tutor', 'teacher', 'specialist', 'student')
     @HttpCode(204)
     remove(
         @AccessToken() token: string,

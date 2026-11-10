@@ -4,6 +4,7 @@ import {
     Param,
     Req,
     UseGuards,
+    ParseUUIDPipe,
 } from '@nestjs/common';
 
 
@@ -21,7 +22,7 @@ export class ClassroomsController {
     constructor(
         private readonly classroomsService: ClassroomsService,
     ) { }
-    
+
     @Get()
     async findAll() {
         return this.classroomsService.findAll();
@@ -38,13 +39,13 @@ export class ClassroomsController {
 
     //esta es la funcion para buscar la clase por estudiante
     @Get('student/:id')
-    async findByStudent(@Param('id') id: string) : Promise<Classroom>{
+    async findByStudent(@Param('id', ParseUUIDPipe) id: string): Promise<Classroom> {
         return this.classroomsService.findByStudent(id);
     }
 
     //esta es la funcion para buscar los estudiantes de una clase
     @Get(':id/students')
-    async findByClass(@Param('id') id: string) : Promise<ClassroomStudent[]> {
+    async findByClass(@Param('id') id: string): Promise<ClassroomStudent[]> {
         return this.classroomsService.findByClass(id);
     }
 }
