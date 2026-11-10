@@ -1,7 +1,7 @@
 import PanelLateral from '../../Componentes/layout/PanelLateral';
 import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
 import { useState } from 'react';
-import type { SessionResponse, UserRole, StudentLoginMethod, UsercreateRequest, Usercreated} from '@agenda/shared';
+import type { SessionResponse, UserRole, StudentLoginMethod} from '@agenda/shared';
 
 interface AltaUsuarioProps {
   // Sesión del administrador que es el token que exige la API para crear usuarios
@@ -33,7 +33,7 @@ const METODOS: { valor: MetodoAcceso; etiqueta: string }[] = [
   { valor: 'password', etiqueta: 'Contraseña' },
   { valor: 'pin', etiqueta: 'PIN' },
   { valor: 'pattern', etiqueta: 'Patrón' },
-  { valor: 'pictograms', etiqueta: 'Pictogramas' },
+  { valor: 'pictogram', etiqueta: 'Pictogramas' },
 ];
 
 
@@ -92,7 +92,7 @@ export default function AltaUsuario({ sesion, onVolver }: AltaUsuarioProps) {
 
       }
 
-      if (metodo === 'pictograms' && !pictogramas.trim()) {
+      if (metodo === 'pictogram' && !pictogramas.trim()) {
 
         setError('Debes indicar los IDs de los pictogramas');
         return;
@@ -134,13 +134,13 @@ export default function AltaUsuario({ sesion, onVolver }: AltaUsuarioProps) {
 
       } else if (metodo === 'pattern') {
 
-        accessObj.pattern = patternAlumno.trim();
+        accessObj.pattern = patronAlumno.trim();
 
       } else if (metodo === 'password') {
 
         accessObj.password = passwordAlumno;
 
-      } else if (metodo === 'pictograms') {
+      } else if (metodo === 'pictogram') {
 
         // Convertimos el texto separado por comas en un array de strings con los IDS. filter(Boolean) es para descartar posibles elementos vacíos.
         accessObj.pictograms = pictogramas.split(',').map((id) => id.trim()).filter(Boolean);
@@ -398,7 +398,7 @@ export default function AltaUsuario({ sesion, onVolver }: AltaUsuarioProps) {
                             disabled={enviando}
                             />
                         )}
-                        {metodo === 'pictograms' && (
+                        {metodo === 'pictogram' && (
                             <input
                             id="credencial"
                             type="text"
