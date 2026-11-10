@@ -6,8 +6,7 @@ import type { EstudianteConMetodo } from './metodoLogin';
 
 const API_URL = 'http://localhost:3000/api';
 // Login de alumno con PIN (login_method = 'pin'). TODO: confirmar la ruta real de la API
-const RUTA_LOGIN_PIN = '/auth/student/pin';
-
+const RUTA_LOGIN_ALUMNO = '/auth/student/login';
 interface InicioSesionCodigoProps {
   // Alumno elegido en "¿Quién eres?"
   estudiante: EstudianteConMetodo;
@@ -44,10 +43,10 @@ export default function InicioSesionCodigo({
     setCargando(true);
 
     try {
-      const respuesta = await fetch(`${API_URL}${RUTA_LOGIN_PIN}`, {
+      const respuesta = await fetch(`${API_URL}${RUTA_LOGIN_ALUMNO}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: estudiante.id, pin: codigoLimpio }),
+        body: JSON.stringify({ studentId: estudiante.id, password: codigoLimpio }),
       });
 
       if (!respuesta.ok) {
