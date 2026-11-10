@@ -4,8 +4,11 @@ import {
     NotFoundException
 } from '@nestjs/common';
 
-import type { Classroom } from '@agenda/shared';
-import { ClassroomStudent } from '@agenda/shared';
+import type {
+    Classroom,
+    ClassroomStudent,
+    StudentLoginMethod,
+} from '@agenda/shared';
 import { SupabaseService } from '../supabase/supabase.service.js';
 
 // Fila de la tabla "classrooms" en Supabase (snake_case)
@@ -21,6 +24,7 @@ interface StudentProfileRow {
     profiles: {
         id: string;
         full_name: string;
+        login_method: StudentLoginMethod | null;
     };
 }
 
@@ -99,7 +103,8 @@ export class ClassroomsService {
             student,
             profiles!inner (
             id,
-            full_name
+            full_name,
+            login_method
             )
         `)
             .eq('classroom', classId)
@@ -117,6 +122,7 @@ export class ClassroomsService {
             .map((row) => ({
                 id: row.profiles.id,
                 fullName: row.profiles.full_name,
+                loginMethod: row.profiles.login_method,
             }))
             .sort((a, b) => a.fullName.localeCompare(b.fullName, 'es'));
     }
