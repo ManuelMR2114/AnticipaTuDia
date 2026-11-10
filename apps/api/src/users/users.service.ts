@@ -24,11 +24,14 @@ const BAJA_INDEFINIDA = '876000h';
  * Valor de cada método en el enum login_method de profiles.
  * Enum real: password | pin | pattern | pictogram (pattern, las formas, aún no está soportado).
  */
+
 const LOGIN_METHOD_DB: Record<StudentAccessDto['method'], string> = {
     password: 'password',
     pin: 'pin',
+    pattern: 'pattern',
     pictograms: 'pictogram',
 };
+
 
 type UsuarioBasico = SessionResponse['user'];
 
