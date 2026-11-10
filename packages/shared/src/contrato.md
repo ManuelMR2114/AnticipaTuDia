@@ -7,6 +7,7 @@ Endpoints que el frontend necesita y que todavía no existen.
 | `GET /api/classrooms/:id/students` | ¿Quién eres? | HU-05 | Pendiente |
 | `POST /api/auth/student/pin` | Confirma que eres tú (código) | HU-05 | Pendiente |
 | `POST /api/auth/student/pictogramas` | Confirma que eres tú (pictogramas) | HU-05 | Pendiente |
+| `POST /api/auth/student/pattern` | Confirma que eres tú (patrón) | HU-05 | Pendiente |
 
 ---
 
@@ -84,3 +85,38 @@ Login de un alumno con `login_method = 'pictogram'`. Es **público**.
 
 **Tablas:** `profiles`, `student_credentials` y `pictograms`.
 
+
+---
+
+## `POST /api/auth/student/pattern`
+
+Login de un alumno con `login_method = 'pattern'`. Es **público**.
+
+**Entrada (JSON):**
+```json
+{
+  "studentId": "0b6f1c1e-6f0d-4c1a-9a53-1f3f6c0a7e11",
+  "pattern": [0, 3, 6, 7, 8]
+}
+```
+
+`pattern` son los puntos de la rejilla 3×3 en el orden en que se unen, numerados del 0 al 8 por filas:
+
+```
+0 1 2
+3 4 5
+6 7 8
+```
+
+**Salida `200`:** `SessionResponse` (el mismo que devuelve `/auth/login`).
+
+**Reglas:**
+- Validar `pattern`: array de enteros entre 0 y 8, sin repetidos y con al menos 4 puntos (el frontend ya exige 4). Si no cumple, `400`.
+- Comprobar que el alumno existe, es `role = 'student'`, está activo (`deactivated_at` nulo) y tiene `login_method = 'pattern'`.
+- Convertir la secuencia a un texto canónico (por ejemplo `"0-3-6-7-8"`) y compararla con `student_credentials.credential_hash`. El orden importa. Nunca guardar ni devolver el patrón en claro.
+- Mismo `401` si el alumno no existe, no usa patrón o el patrón es incorrecto, para no revelar cuál de los casos es.
+- Limitar intentos por alumno e IP. Un patrón tiene pocas combinaciones, así que la protección contra fuerza bruta es imprescindible.
+
+**Errores:** `400` si falta `studentId` o `pattern`, o `pattern` no es válido; `401` credenciales incorrectas; `429` demasiados intentos; `503` si falla el servicio.
+
+**Tablas:** `profiles` y `student_credentials`.
