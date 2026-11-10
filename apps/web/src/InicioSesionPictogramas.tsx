@@ -5,17 +5,14 @@ import type { SessionResponse, Pictogram } from '@agenda/shared';
 
 interface InicioSesionPictogramasProps {
   // Alumno elegido en "¿Quién eres?"
-  estudiante: EstudianteConMetodo;
+  estudiante: { id: string };
   onVolver: () => void;
   onLoginExitoso: (sessionData: SessionResponse) => void;
 }
 
 const API_URL = 'http://localhost:3000/api';
-// Login de alumno con PICTOGRAMA (login_method = 'pictogram').
-const RUTA_LOGIN_PICTOGRAMA = '/auth/student/pictogramas';
 
-// Numero de pictogramas que se muestran y que forman la contraseña. De momento, establecemos 3 fijos.
-const Numero_Pictogramas_contrasena = 3;
+const RUTA_LOGIN_ALUMNO = '/auth/student/login';
 
 export default function InicioSesionPictogramas({
   estudiante,
@@ -34,39 +31,44 @@ export default function InicioSesionPictogramas({
   // Bloquea los botones para evitar envíos dobles, toma el valor true mientras la API comprueba la contraseña metida de pictogramas.
   const [verificando, setVerificando] = useState(false);
   
-  const cargarPictogramas = async () => {
-    try {
-        const response = await fetch(`${API_URL}/pictograms/student/${estudiante.id}`);
-
-        // Si la API falla, avisamos y salimos
-        if (!response.ok) {
-
-          setError('No se pudieron cargar los pictogramas');
-          return;
-
-        }
-        // Obtenemos los pictogramas de la respuesta
-        const data: Pictogram[] = await response.json();
-
-        // La API ya los devuelve ordenados por sort_order y de momento nos quedamos con los 3 primeros recortando la respuesta con slice indicando desdee donde a donde.
-        // Guardandolos en pictogramas gracias a la función setPictogramas
-        setPictogramas(data.slice(0, Numero_Pictogramas_contrasena));
-
-      } catch {
-
-        setError('No se pudo conectar con el servidor');
-
-      } finally {
-        // Da igual lo que pase, dejamos de mostrar "Cargando" poniendo a false
-        setCargando_pictogramas(false);
-      }
-
-  };
  // Usamos useEffect para que la primera vez que se carga la pantalla, se cargen los pictogramas.
 
   useEffect(() => {
+    const cargarPictogramas = async () => {
+      try {
+          const response = await fetch(`${API_URL}/pictograms/student/${estudiante.id}`);
+
+          // Si la API falla, avisamos y salimos
+          if (!response.ok) {
+
+            setError('No se pudieron cargar los pictogramas');
+            return;
+
+          }
+          // Obtenemos los pictogramas de la respuesta
+          const data: Pictogram[] = await response.json();
+
+          // Si el alumno no tiene pictogramas no puede entrar
+          if (data.length === 0) {
+
+            setError('Este alumno no tiene pictogramas configurados');
+            return;
+          }
+          // La API ya los devuelve ordenados por sort_order
+          setPictogramas(data);
+
+        } catch {
+
+          setError('No se pudo conectar con el servidor');
+
+        } finally {
+          // Da igual lo que pase, dejamos de mostrar "Cargando" poniendo a false
+          setCargando_pictogramas(false);
+        }
+
+    };
     cargarPictogramas();
-  }, []);
+  }, [estudiante.id]);
   
   const elegirPictograma = async (id: string) => {
     // Si ya está elegido o se está comprobando, lo ignoramos
@@ -84,18 +86,20 @@ export default function InicioSesionPictogramas({
     setSeleccion(nuevaSeleccion);
 
     // Mientras falten pictogramas, solo guardamos el orden y esperamos al siguiente
-    if (nuevaSeleccion.length < Numero_Pictogramas_contrasena){
+    if (nuevaSeleccion.length < pictogramas.length){
         return;
     } 
 
-    // Una vez este la contrasena completa (no se sabe si esta bien o mal solo que se han marcado 3 pictogramas), se manda a la API para verificar.
+    // Convertimos los pictogramas tocados en contraseña. Tocar un pictograma equivale a teclear su id.
+    const password = nuevaSeleccion.join(',');
+    // Una vez este la contrasena completa (no se sabe si esta bien o mal), se manda a la API para verificar.
     setVerificando(true);
     try {
 
-        const response = await fetch(`${API_URL}${RUTA_LOGIN_PICTOGRAMA}`, {
+        const response = await fetch(`${API_URL}${RUTA_LOGIN_ALUMNO}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ studentId: estudiante.id, pictogramas: nuevaSeleccion }),
+            body: JSON.stringify({ studentId: estudiante.id,  password }),
         });
 
       if (!response.ok) {
