@@ -6,8 +6,7 @@ import type { EstudianteConMetodo } from './metodoLogin';
 
 const API_URL = 'http://localhost:3000/api';
 // Login de alumno con patrón (login_method = 'pattern'). TODO: confirmar la ruta real de la API
-const RUTA_LOGIN_PATRON = '/auth/student/pattern';
-
+const RUTA_LOGIN_ALUMNO = '/auth/student/login';
 // Mínimo de puntos para que el patrón sea válido
 const MIN_PUNTOS = 4;
 
@@ -81,10 +80,10 @@ export default function InicioSesionPatron({
     setError('');
     setCargando(true);
     try {
-      const respuesta = await fetch(`${API_URL}${RUTA_LOGIN_PATRON}`, {
+      const respuesta = await fetch(`${API_URL}${RUTA_LOGIN_ALUMNO}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: estudiante.id, pattern: secuencia }),
+        body: JSON.stringify({ studentId: estudiante.id, password: secuencia.join(',') }),
       });
 
       if (!respuesta.ok) {
