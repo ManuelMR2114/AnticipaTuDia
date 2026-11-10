@@ -202,9 +202,9 @@ export default function App() {
         <Route path="/admin" element={<RutaProtegida roles={['admin']} />}>
           <Route element={<PanelAdmin />}>
             <Route index element={<Navigate to="usuarios" replace />} />
-            {/* Tarea 3: sustituir por el listado de usuarios */}
+            {/*<Route path="usuarios" element={<ListadoUsuarios />} />*/}
             <Route path="usuarios" element={<h1 className="text-titulo font-bold text-black">Usuarios</h1>} />
-            {/* Tarea 4: <Route path="usuarios/:id" ... /> */}
+            {/* parte 4 <Route path="usuarios/:id" ... /> */}
           </Route>
         </Route>
 
