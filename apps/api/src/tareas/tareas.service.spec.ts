@@ -108,16 +108,34 @@ describe('TasksService', () => {
         expect(rpc).not.toHaveBeenCalled();
     });
 
-    it('remove: el error de la base de datos se traduce a 403 con su mensaje', async () => {
+
+    it('remove: permite ejecutar delete_task', async () => {
+        const { servicio, rpc } = preparar();
+
+        await expect(
+            servicio.remove(TOKEN, TASK_ID),
+        ).resolves.toBeUndefined();
+
+        expect(rpc).toHaveBeenCalledWith('delete_task', {
+            p_task_id: TASK_ID,
+        });
+    });
+
+    it('remove: los errores de autorización se traducen a 403', async () => {
         const { servicio } = preparar({
-            rpc: { error: { code: 'P0001', message: 'Las tareas personales del alumno no se pueden eliminar' } },
+            rpc: {
+                error: {
+                    code: 'P0001',
+                    message: 'Solo puedes eliminar las tareas que tú has asignado',
+                },
+            },
         });
 
-        const resultado = servicio.remove(TOKEN, TASK_ID);
-
-        await expect(resultado).rejects.toBeInstanceOf(ForbiddenException);
-        await expect(resultado).rejects.toThrow('Las tareas personales del alumno no se pueden eliminar');
+        await expect(
+            servicio.remove(TOKEN, TASK_ID),
+        ).rejects.toBeInstanceOf(ForbiddenException);
     });
+
 
     it('findOne: una tarea que no existe (o no se puede ver) es un 404', async () => {
         const { servicio } = preparar({ fila: null });

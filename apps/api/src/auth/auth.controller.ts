@@ -35,43 +35,6 @@ export class AuthController {
         );
     }
 
-    /** Método configurado para un alumno, usado por clientes que trabajan con identificador. */
-    @Post('student/method')
-    @HttpCode(HttpStatus.OK)
-    studentLoginMethod(
-        @Body() dto: StudentLoginMethodDto,
-    ): Promise<{ studentId: string; method: 'password' | 'pin' | 'pattern' | 'pictogram' }> {
-        return this.auth.studentLoginMethod(dto.identifier);
-    }
-
-    /** Contrato genérico recomendado: identificador + credencial según el método. */
-    @Post('student/login')
-    @HttpCode(HttpStatus.OK)
-    studentLogin(@Body() dto: StudentLoginDto): Promise<SessionResponse> {
-        return this.auth.loginStudent(dto);
-    }
-
-    /** Compatibilidad con la pantalla de PIN que ya consume el frontend. */
-    @Post('student/pin')
-    @HttpCode(HttpStatus.OK)
-    loginStudentPin(@Body() dto: StudentPinLoginDto): Promise<SessionResponse> {
-        return this.auth.loginStudentById(dto.studentId, 'pin', dto.pin);
-    }
-
-    /** Compatibilidad con la pantalla de patrón que ya consume el frontend. */
-    @Post('student/pattern')
-    @HttpCode(HttpStatus.OK)
-    loginStudentPattern(@Body() dto: StudentPatternLoginDto): Promise<SessionResponse> {
-        return this.auth.loginStudentById(dto.studentId, 'pattern', dto.pattern);
-    }
-
-    /** Compatibilidad con la pantalla de pictogramas existente; no altera la ruta GET de pictogramas. */
-    @Post('student/pictogramas')
-    @HttpCode(HttpStatus.OK)
-    loginStudentPictograms(@Body() dto: StudentPictogramsLoginDto): Promise<SessionResponse> {
-        return this.auth.loginStudentById(dto.studentId, 'pictogram', dto.pictogramas);
-    }
-
     // Cierre de sesión.
     @Post('logout')
     @UseGuards(SupabaseAuthGuard)
