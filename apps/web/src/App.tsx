@@ -1,7 +1,16 @@
+//enrutador, en lugar de usar urls distintas para cada paso del inicio de sesion, maneja el flujo
+//de acceso seleecion rol, clase, alumno y login, intercambiando componentes segun el estado
+//de vista actual . Ademas se configura react route para proteger el area de admin´
+
+//se envuelve toda la app con accesibilidadprovider para qeu los ajustes persistean en
+//todas las pantallas
+
 import { useState } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router';
 import type { Classroom, SessionResponse } from '@agenda/shared';
 
+
+//importacion de las distinta pantallas que forman el flujo del login 
 import SeleccionRol from './SeleccionRol';
 import InicioSesionClase from './InicioSesionClase';
 import SeleccionEstudiante from './SeleccionEstudiante';
@@ -10,15 +19,19 @@ import InicioSesionPictogramas from './InicioSesionPictogramas';
 import InicioSesionPatron from './InicioSesionPatron';
 import type { EstudianteConMetodo } from './metodoLogin';
 import InicioSesionTutorFamilia, { type RolPersonal } from './InicioSesionTutorFamilia';
+
+
 import RutaProtegida from './RutaProtegida';
 import PanelAdmin from './PanelAdmin';
 import { guardarSesion, leerSesion } from './sesion';
 
-// Provider para guardar el tamaño de texto y el contraste para todas las pantallas
+//provider para guardar el tamaño de texto y el contraste para todas las pantallas
 import AccesibilidadProvider from './AccesibilidadProvider';
 import './index.css';
 
-// Tipos de vistas posibles
+
+
+//tipos de vista tipados para evitar fallos al escribirlas 
 type Vista =
   | 'seleccion-rol'
   | 'inicio-clase'
@@ -29,29 +42,32 @@ type Vista =
   | 'login-tutor-familia-administrador';
 
 // Flujo de acceso (selección de rol y logins). Vive en "/"
+
+//componente qque encapsula todo el proceso de autenticacion 
 function FlujoAcceso() {
   const navigate = useNavigate();
 
-  // Pantalla que se muestra ahora mismo
+  //pantalla que se muestra ahora mismo
   const [vistaActual, setVistaActual] = useState<Vista>('seleccion-rol');
 
-  // Rol que se le pasa al login de tutor/familia/administrador (valor inicial: tutor)
+  //rol que se le pasa al login de tutor/familia/administrador 
   const [rolSeleccionado, setRolSeleccionado] = useState<RolPersonal>('tutor');
 
-  // Aula que ha elegido el alumno (Classroom); la necesita la pantalla "¿Quién eres?" para pedir sus compañeros
+  //aula que ha elegido el alumno, se necesita en la pantalla ¿Quién eres? para pedir sus compañeros
   const [aulaSeleccionada, setAulaSeleccionada] = useState<Classroom | null>(null);
 
-  // Alumno que ha elegido en "¿Quién eres?"; lo necesita su pantalla de login
+  //guarda el objeto completo del estudiante para saber como debe loguearse (patron,pin..)
   const [estudianteSeleccionado, setEstudianteSeleccionado] = useState<EstudianteConMetodo | null>(null);
 
-  // Aviso cuando el alumno no puede entrar todavía (sin método o método sin pantalla)
+  //aviso cuando el alumno no puede entrar porque no se le ha asignado metodo 
   const [avisoLogin, setAvisoLogin] = useState<string | null>(null);
 
-  // Guarda la sesión que devuelve la API al entrar.
-  // [, setSesion]: no leemos el valor todavía, solo necesitamos la función para guardarlo.
+  
+  //almacena la sesion devuelta por el backend tras un login correcto
   const [, setSesion] = useState<SessionResponse | null>(null);
 
-  // Tutor, familia y administrador usan la misma pantalla cambiando solo el rol
+  //funcion auxiliar para centrarlizar los roles tutor/familia... porque usan
+  //la misma pantalla
   const abrirLogin = (rol: RolPersonal) => {
     setRolSeleccionado(rol);
     setVistaActual('login-tutor-familia-administrador');
@@ -65,9 +81,9 @@ function FlujoAcceso() {
         {/*-------------------PANTALLA SELECCIÓN ROL-----------------------------*/}
         {vistaActual === 'seleccion-rol' && (
           <SeleccionRol
-            // Estudiante -> elige su clase
+            //estudiante, elige su clase
             onSeleccionarEstudiante={() => setVistaActual('inicio-clase')}
-            // Tutor, familia y admin -> mismo login, con rol distinto
+            //Tutor/familia/admin mismo login con rol distinto
             onSeleccionarTutor={() => abrirLogin('tutor')}
             onSeleccionarFamilia={() => abrirLogin('family')}
             onSeleccionarAdmin={() => abrirLogin('admin')}
@@ -93,6 +109,7 @@ function FlujoAcceso() {
 
 
         {/*---------------------PANTALLA ¿QUIÉN ERES?----------------------------*/}
+        {/*doble validacion de que se este en la pantalla y tener el aula seleccionada ya*/}
         {vistaActual === 'seleccion-estudiante' && aulaSeleccionada && (
           <SeleccionEstudiante
             aula={aulaSeleccionada}
@@ -101,7 +118,7 @@ function FlujoAcceso() {
             onSeleccionarEstudiante={(estudiante: EstudianteConMetodo) => {
               setAvisoLogin(null);
               setEstudianteSeleccionado(estudiante);
-              // Cada alumno entra con su método (profiles.login_method)
+              //cada alumno entra con su metodo
               switch (estudiante.loginMethod) {
                 case 'pin':
                   setVistaActual('login-estudiante-codigo');
@@ -116,7 +133,6 @@ function FlujoAcceso() {
                   setAvisoLogin(`${estudiante.fullName} aún no tiene método de acceso. Pide ayuda a tu tutor.`);
                   break;
                 default:
-                  // password: pantalla pendiente
                   setAvisoLogin('Este método de acceso aún no está disponible.');
               }
             }}
@@ -127,6 +143,7 @@ function FlujoAcceso() {
 
 
         {/*---------------------PANTALLA LOGIN ALUMNO (CÓDIGO)----------------------------*/}
+        {/*tb doble validacion*/}
         {vistaActual === 'login-estudiante-codigo' && estudianteSeleccionado && (
           <InicioSesionCodigo
             estudiante={estudianteSeleccionado}
@@ -139,7 +156,8 @@ function FlujoAcceso() {
         )}
         {/*---------------------PANTALLA LOGIN ALUMNO (CÓDIGO)----------------------------*/}
 
-         {/*---------------------PANTALLA LOGIN ALUMNO (PICTOGRAMA)----------------------------*/}
+
+        {/*---------------------PANTALLA LOGIN ALUMNO (PICTOGRAMA)----------------------------*/}
         {vistaActual === 'login-estudiante-pictograma' && estudianteSeleccionado && (
           <InicioSesionPictogramas
             estudiante={estudianteSeleccionado}
@@ -175,7 +193,7 @@ function FlujoAcceso() {
             rol={rolSeleccionado}
             onVolver={() => setVistaActual('seleccion-rol')}
             onLoginExitoso={(sessionData) => {
-              // Guardamos la sesión (estado + navegador)
+              //guardamos la sesion 
               guardarSesion(sessionData);
               setSesion(sessionData);
               if (sessionData.user.role === 'admin') navigate('/admin', { replace: true });
@@ -194,13 +212,19 @@ function FlujoAcceso() {
 
 export default function App() {
   return (
-    // Debe envolver todas las pantallas, así el botón de accesibilidad
-    // funciona en cualquiera de ellas y mantiene su estado al cambiar de vista
+    
+    //accesibilidadprovider tiene que envolver todo porque asi el boton de accesibilidad
+    //funciona en cualquiera de ellas y mantiene su estado si camiba de vista
     <AccesibilidadProvider>
       <Routes>
-        {/* Zona de administración: solo con sesión válida de admin */}
+
+        {/*-------RUTA-PROTEGIDA------*/}
+
+        {/* ruta /admin envuelve todas las rutas hijas con el componente rutaprotegida
+            si el usuario no tiene el rol admin este componetne no permite el paso */}
         <Route path="/admin" element={<RutaProtegida roles={['admin']} />}>
           <Route element={<PanelAdmin />}>
+            {/* Zsi se entra /admin, se les dirige directamente a /admin/usuarios*/}
             <Route index element={<Navigate to="usuarios" replace />} />
             {/*<Route path="usuarios" element={<ListadoUsuarios />} />*/}
             <Route path="usuarios" element={<h1 className="text-titulo font-bold text-black">Usuarios</h1>} />
@@ -208,13 +232,21 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Un admin con sesión activa no necesita ver el login */}
+
+
+        {/*-------RUTA-PUBLICA /LOGIN------*/}
+
+        {/*un admin con sesion activa no necesita ver el login */}
         <Route
           path="/"
           element={leerSesion()?.user.role === 'admin' ? <Navigate to="/admin" replace /> : <FlujoAcceso />}
         />
+
+        {/*Las rutas no encontras se van al inicio*/}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
+
     </AccesibilidadProvider>
   );
 }
