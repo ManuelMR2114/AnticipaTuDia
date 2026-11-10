@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Navigate, Route, Routes, useNavigate } from 'react-router';
 import type { Classroom, SessionResponse } from '@agenda/shared';
 
 import SeleccionRol from './SeleccionRol';
@@ -9,6 +10,9 @@ import InicioSesionPictogramas from './InicioSesionPictogramas';
 import InicioSesionPatron from './InicioSesionPatron';
 import type { EstudianteConMetodo } from './metodoLogin';
 import InicioSesionTutorFamilia, { type RolPersonal } from './InicioSesionTutorFamilia';
+import RutaProtegida from './RutaProtegida';
+import PanelAdmin from './PanelAdmin';
+import { guardarSesion, leerSesion } from './sesion';
 
 // Provider para guardar el tamaño de texto y el contraste para todas las pantallas
 import AccesibilidadProvider from './AccesibilidadProvider';
@@ -24,7 +28,10 @@ type Vista =
   | 'login-estudiante-patron'
   | 'login-tutor-familia-administrador';
 
-export default function App() {
+// Flujo de acceso (selección de rol y logins). Vive en "/"
+function FlujoAcceso() {
+  const navigate = useNavigate();
+
   // Pantalla que se muestra ahora mismo
   const [vistaActual, setVistaActual] = useState<Vista>('seleccion-rol');
 
@@ -51,10 +58,7 @@ export default function App() {
   };
 
   return (
-    // Debe envolver todas las pantallas, así el botón de accesibilidad
-    // funciona en cualquiera de ellas y mantiene su estado al cambiar de vista
-    <AccesibilidadProvider>
-      <div className="app-container">
+    <div className="app-container">
 
 
 
@@ -171,8 +175,10 @@ export default function App() {
             rol={rolSeleccionado}
             onVolver={() => setVistaActual('seleccion-rol')}
             onLoginExitoso={(sessionData) => {
-              // Guardamos la sesión
+              // Guardamos la sesión (estado + navegador)
+              guardarSesion(sessionData);
               setSesion(sessionData);
+              if (sessionData.user.role === 'admin') navigate('/admin', { replace: true });
               console.log(`Acceso completado como ${sessionData.user.role}`);
             }}
           />
@@ -181,7 +187,34 @@ export default function App() {
 
 
 
-      </div>
+
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    // Debe envolver todas las pantallas, así el botón de accesibilidad
+    // funciona en cualquiera de ellas y mantiene su estado al cambiar de vista
+    <AccesibilidadProvider>
+      <Routes>
+        {/* Zona de administración: solo con sesión válida de admin */}
+        <Route path="/admin" element={<RutaProtegida roles={['admin']} />}>
+          <Route element={<PanelAdmin />}>
+            <Route index element={<Navigate to="usuarios" replace />} />
+            {/* Tarea 3: sustituir por el listado de usuarios */}
+            <Route path="usuarios" element={<h1 className="text-titulo font-bold text-black">Usuarios</h1>} />
+            {/* Tarea 4: <Route path="usuarios/:id" ... /> */}
+          </Route>
+        </Route>
+
+        {/* Un admin con sesión activa no necesita ver el login */}
+        <Route
+          path="/"
+          element={leerSesion()?.user.role === 'admin' ? <Navigate to="/admin" replace /> : <FlujoAcceso />}
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </AccesibilidadProvider>
   );
 }

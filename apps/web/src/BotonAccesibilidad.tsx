@@ -7,7 +7,14 @@ const ETIQUETA_TEXTO: Record<TamanoTexto, string> = {
 };
 
 //cuadro accesibilidad de la esquina, tamaño de texto y alto contraste
-export default function BotonAccesibilidad() {
+interface BotonAccesibilidadProps {
+  // Posición del cuadro. Por defecto, la esquina de las pantallas de login.
+  className?: string;
+}
+
+export default function BotonAccesibilidad({
+  className = 'absolute top-[7.8vh] right-[5.9vw]',
+}: BotonAccesibilidadProps) {
   const { tamanoTexto, altoContraste, alternarTamanoTexto, alternarContraste } = useAccesibilidad();
   const textoAmpliado = tamanoTexto !== 'normal';
 
@@ -15,7 +22,7 @@ export default function BotonAccesibilidad() {
     <div
       role="group"
       aria-label="Opciones de accesibilidad"
-      className="absolute top-[7.8vh] right-[5.9vw] flex h-[58px] items-center gap-3.5 rounded-[16px] border border-borde bg-white pr-3.5 pl-4"
+      className={`${className} flex h-[58px] items-center gap-3.5 rounded-[16px] border border-borde bg-white pr-3.5 pl-4`}
     >
       <span className="text-[0.72rem] font-bold text-azul-oscuro">Accesibilidad</span>
 
