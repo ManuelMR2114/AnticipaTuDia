@@ -7,6 +7,8 @@ import { SupabaseModule } from './supabase/supabase.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ClassroomsModule } from './aulas/aulas.module.js';
 import { UsersModule } from './users/users.module.js';
+import { TasksModule } from './tareas/tareas.module.js';
+import { StudentLinksModule } from './vinculos/vinculos.module.js';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { UsersModule } from './users/users.module.js';
     AuthModule,
     ClassroomsModule,
     UsersModule,
+    TasksModule,
+    StudentLinksModule,
   ],
   controllers: [AppController],
 })

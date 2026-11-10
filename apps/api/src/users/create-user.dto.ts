@@ -17,14 +17,33 @@ import {
     ValidateNested,
 } from 'class-validator';
 
-export const ROLES = ['student', 'tutor', 'teacher', 'specialist', 'family', 'admin'] as const;
+export const ROLES = [
+    'student',
+    'tutor',
+    'teacher',
+    'specialist',
+    'family',
+    'admin',
+] as const;
 
 const PIN_REGEX = /^\d{4}$/;
 
-/** Cómo entrará el estudiante. Lo elige el admin (con el chico) en el alta. */
+/**
+ * Normaliza el patrón tanto si llega como cadena como si llega como array.
+ * Se utilizará exactamente la misma normalización durante el login.
+ */
+const normalizarPatron = ({ value }: { value: unknown }): unknown => {
+    if (Array.isArray(value)) {
+        return value.map((elemento) => String(elemento)).join(',');
+    }
+
+    return typeof value === 'string' ? value.trim() : value;
+};
+
+/** Cómo entrará el estudiante. */
 export class StudentAccessDto {
-    @IsIn(['password', 'pin', 'pictograms'])
-    method!: 'password' | 'pin' | 'pictograms';
+    @IsIn(['password', 'pin', 'pattern', 'pictograms'])
+    method!: 'password' | 'pin' | 'pattern' | 'pictograms';
 
     @ValidateIf((o: StudentAccessDto) => o.method === 'password')
     @IsString()
@@ -36,7 +55,15 @@ export class StudentAccessDto {
     @Matches(PIN_REGEX)
     pin?: string;
 
-    /** Ids (uuid) de pictograms. El orden elegido ES la contraseña. */
+    @ValidateIf((o: StudentAccessDto) => o.method === 'pattern')
+    @Transform(normalizarPatron)
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(4)
+    @MaxLength(128)
+    pattern?: string;
+
+    /** Los tres pictogramas elegidos y ordenados constituyen la contraseña. */
     @ValidateIf((o: StudentAccessDto) => o.method === 'pictograms')
     @IsArray()
     @ArrayMinSize(3)
@@ -47,8 +74,11 @@ export class StudentAccessDto {
 }
 
 /**
- * Personal/familia/admin: { fullName, role, email, password }
- * Estudiante:             { fullName, role: 'student', access: { method, ... } }
+ * Personal/familia/admin:
+ * { fullName, role, email, password }
+ *
+ * Estudiante:
+ * { fullName, role: 'student', access: { method, ... } }
  */
 export class CreateUserDto {
     @IsString()
