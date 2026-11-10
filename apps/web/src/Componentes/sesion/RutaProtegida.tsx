@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import type { UserRole } from '@agenda/shared';
-import { leerSesion } from './sesion';
+import { leerSesion } from '../../Utilidades/sesion';
 
 interface RutaProtegidaProps {
   // Roles que pueden entrar (por defecto, solo admin)

@@ -1,4 +1,4 @@
-import { useAccesibilidad, type TamanoTexto } from './UseAccesibilidad';
+import { useAccesibilidad, type TamanoTexto } from '../../Hooks/UseAccesibilidad';
 
 const ETIQUETA_TEXTO: Record<TamanoTexto, string> = {
   normal: 'normal',

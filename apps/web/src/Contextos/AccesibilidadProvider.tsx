@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { ContextoAccesibilidad, type TamanoTexto } from './UseAccesibilidad';
+import { ContextoAccesibilidad, type TamanoTexto } from '../Hooks/UseAccesibilidad';
 
 
 //clave con las que se guardan las preferencias en el navegador 

@@ -11,25 +11,25 @@ import type { Classroom, SessionResponse } from '@agenda/shared';
 
 
 //importacion de las distinta pantallas que forman el flujo del login 
-import SeleccionRol from './SeleccionRol';
-import InicioSesionClase from './InicioSesionClase';
-import SeleccionEstudiante from './SeleccionEstudiante';
-import InicioSesionCodigo from './InicioSesionCodigo';
-import InicioSesionPictogramas from './InicioSesionPictogramas';
-import InicioSesionPatron from './InicioSesionPatron';
-import AltaUsuarioAdmin from './AltaUsuarioAdmin';
-import BajaUsuarioAdmin from './BajaUsuarioAdmin';
-import GestionRolesAdmin from './GestionRolesAdmin';
-import type { EstudianteConMetodo } from './metodoLogin';
-import InicioSesionTutorFamilia, { type RolPersonal } from './InicioSesionTutorFamilia';
+import SeleccionRol from './Pantallas/acceso/SeleccionRol';
+import InicioSesionClase from './Pantallas/alumno/InicioSesionClase';
+import SeleccionEstudiante from './Pantallas/alumno/SeleccionEstudiante';
+import InicioSesionCodigo from './Pantallas/alumno/InicioSesionCodigo';
+import InicioSesionPictogramas from './Pantallas/alumno/InicioSesionPictogramas';
+import InicioSesionPatron from './Pantallas/alumno/InicioSesionPatron';
+import AltaUsuarioAdmin from './Pantallas/admin/AltaUsuarioAdmin';
+import BajaUsuarioAdmin from './Pantallas/admin/BajaUsuarioAdmin';
+import GestionRolesAdmin from './Pantallas/admin/GestionRolesAdmin';
+import type { EstudianteConMetodo } from './Tipos/metodoLogin';
+import InicioSesionTutorFamilia, { type RolPersonal } from './Pantallas/acceso/InicioSesionTutorFamilia';
 
 
-import RutaProtegida from './RutaProtegida';
-import PanelAdmin from './PanelAdmin';
-import { guardarSesion, leerSesion } from './sesion';
+import RutaProtegida from './Componentes/sesion/RutaProtegida';
+import PanelAdmin from './Pantallas/admin/PanelAdmin';
+import { guardarSesion, leerSesion } from './Utilidades/sesion';
 
 //provider para guardar el tamaño de texto y el contraste para todas las pantallas
-import AccesibilidadProvider from './AccesibilidadProvider';
+import AccesibilidadProvider from './Contextos/AccesibilidadProvider';
 import './index.css';
 
 
@@ -243,7 +243,7 @@ export default function App() {
               path="usuarios/roles" 
               element={<GestionRolesAdmin sesion={leerSesion()!} onVolver={() => window.history.back()} />} 
             />
-            
+
           </Route>
         </Route>
 

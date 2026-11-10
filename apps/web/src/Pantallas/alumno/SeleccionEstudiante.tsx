@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import PanelLateral from './PanelLateral';
-import BotonAccesibilidad from './BotonAccesibilidad';
-import TarjetaSeleccion from './TarjetaSeleccion';
+import PanelLateral from '../../Componentes/layout/PanelLateral';
+import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
+import TarjetaSeleccion from '../../Componetes/ui/TarjetaSeleccion';
 import type { Classroom } from '@agenda/shared';
-import type { EstudianteConMetodo } from './metodoLogin';
+import type { EstudianteConMetodo } from '../Tipos/metodoLogin';
 
 const API_URL = 'http://localhost:3000/api';
 

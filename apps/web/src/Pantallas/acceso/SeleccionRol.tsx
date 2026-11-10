@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import PanelLateral from './PanelLateral';
-import BotonAccesibilidad from './BotonAccesibilidad';
+import PanelLateral from '../../Componentes/layout/PanelLateral';
+import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
 
 interface SeleccionRolProps {
   onSeleccionarEstudiante: () => void;

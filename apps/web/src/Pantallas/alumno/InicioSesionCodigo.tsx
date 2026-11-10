@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import PanelLateral from './PanelLateral';
-import BotonAccesibilidad from './BotonAccesibilidad';
+import PanelLateral from '../../Componentes/layout/PanelLateral';
+import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
 import type { SessionResponse } from '@agenda/shared';
-import type { EstudianteConMetodo } from './metodoLogin';
+import type { EstudianteConMetodo } from '../Tipos/metodoLogin';
 
 const API_URL = 'http://localhost:3000/api';
 // Login de alumno con PIN (login_method = 'pin'). TODO: confirmar la ruta real de la API

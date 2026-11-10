@@ -1,5 +1,5 @@
-import PanelLateral from './PanelLateral';
-import BotonAccesibilidad from './BotonAccesibilidad';
+import PanelLateral from '../../Componentes/layout/PanelLateral';
+import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
 import { useState, useEffect } from 'react';
 import type { SessionResponse, Pictogram } from '@agenda/shared';
 

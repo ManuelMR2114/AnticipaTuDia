@@ -1,5 +1,5 @@
-import PanelLateral from './PanelLateral';
-import BotonAccesibilidad from './BotonAccesibilidad';
+import PanelLateral from '../../Componentes/layout/PanelLateral';
+import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
 import { useState } from 'react';
 import type { SessionResponse, UserRole, StudentLoginMethod, UsercreateRequest, Usercreated} from '@agenda/shared';
 

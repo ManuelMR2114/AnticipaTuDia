@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { borrarSesion } from './sesion';
+import { borrarSesion } from '../Utilidades/sesion';
 
 /** Botón de cierre de sesión: borra el token y vuelve al inicio. */
 interface BotonCerrarSesionProps {

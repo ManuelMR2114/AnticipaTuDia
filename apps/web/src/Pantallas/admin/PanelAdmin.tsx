@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, Outlet } from 'react-router';
-import BotonAccesibilidad from './BotonAccesibilidad';
-import BotonCerrarSesion from './BotonCerrarSesion';
-import { leerSesion } from './sesion';
+import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
+import BotonCerrarSesion from '../../Componentes/sesion/BotonCerrarSesion';
+import { leerSesion } from '../../Utilidades/sesion';
 
 interface ElementoMenu {
   to: string;
