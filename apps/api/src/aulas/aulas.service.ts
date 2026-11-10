@@ -17,11 +17,11 @@ interface ClassroomRow {
 
 //interfaz para recibir los datos de supabase
 interface StudentProfileRow {
-  student: string;
-  profiles: {
-    id: string;
-    full_name: string;
-  };
+    student: string;
+    profiles: {
+        id: string;
+        full_name: string;
+    };
 }
 
 @Injectable()
@@ -58,8 +58,8 @@ export class ClassroomsService {
         const supabase = this.supabaseService.admin;
 
         const { data, error } = await supabase
-                .from('student-classroom')
-                .select(`
+            .from('student-classroom')
+            .select(`
                     student,
                     classrooms!inner (
                         id,
@@ -67,8 +67,8 @@ export class ClassroomsService {
                         group_name
                     )
                 `)
-                .eq('student', id_student)
-                .single();
+            .eq('student', id_student)
+            .single();
 
         if (error) {
             if (error.code === 'PGRST116') {
@@ -94,33 +94,32 @@ export class ClassroomsService {
 
         // 1. Consultamos la tabla 'student-classroom' filtrando por el id del aula
         const { data, error } = await supabase
-        .from('student-classroom')
-        .select(`
+            .from('student-classroom')
+            .select(`
             student,
             profiles!inner (
             id,
             full_name
             )
         `)
-        .eq('classroom', classId);
+            .eq('classroom', classId)
+            .eq('profiles.role', 'student')
+            .is('profiles.deactivated_at', null);
 
         if (error) {
-        throw new InternalServerErrorException('Error al obtener los estudiantes del aula');
+            throw new InternalServerErrorException('Error al obtener los estudiantes del aula');
         }
 
-        // 2. Si no hay registros asociados o la lista viene vacía
-        if (!data || data.length === 0) {
-        throw new NotFoundException(`No se encontraron estudiantes para el aula con ID ${classId}`);
-        }
+        const rows = (data ?? []) as unknown as StudentProfileRow[];
 
-        const rows = data as unknown as StudentProfileRow[];
-
-        // 3. Mapeamos los resultados al contrato ClassroomStudent[] de @agenda/shared
-        return rows.map((row) => ({
-            id: row.profiles.id,
-            fullName: row.profiles.full_name,
-        }));
+        // Orden alfabético en español en el servidor (un aula tiene pocos alumnos).
+        return rows
+            .map((row) => ({
+                id: row.profiles.id,
+                fullName: row.profiles.full_name,
+            }))
+            .sort((a, b) => a.fullName.localeCompare(b.fullName, 'es'));
     }
 
-    
+
 }

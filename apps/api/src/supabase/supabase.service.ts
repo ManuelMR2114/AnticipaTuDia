@@ -37,4 +37,22 @@ export class SupabaseService {
             AUTH_OPTIONS,
         );
     }
+
+    /**
+    * Cliente "en nombre del usuario": lleva SU access token, así que para la base de
+    * datos quien actúa es él (auth.uid() = su id) y la RLS y las funciones SQL
+    * comprueban sus permisos. Es el cliente que usan tareas y vínculos.
+    * Se crea nuevo en cada petición: el token es de un solo usuario.
+    * (El token ya lo validó SupabaseAuthGuard; PostgREST lo vuelve a validar.)
+    */
+    createUserClient(accessToken: string): SupabaseClient {
+        return createClient(
+            this.config.getOrThrow('SUPABASE_URL'),
+            this.config.getOrThrow('SUPABASE_ANON_KEY'),
+            {
+                ...AUTH_OPTIONS,
+                global: { headers: { Authorization: `Bearer ${accessToken}` } },
+            },
+        );
+    }
 }
