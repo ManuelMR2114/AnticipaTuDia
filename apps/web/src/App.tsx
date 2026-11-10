@@ -17,6 +17,9 @@ import SeleccionEstudiante from './SeleccionEstudiante';
 import InicioSesionCodigo from './InicioSesionCodigo';
 import InicioSesionPictogramas from './InicioSesionPictogramas';
 import InicioSesionPatron from './InicioSesionPatron';
+import AltaUsuarioAdmin from './AltaUsuarioAdmin';
+import BajaUsuarioAdmin from './BajaUsuarioAdmin';
+import GestionRolesAdmin from './GestionRolesAdmin';
 import type { EstudianteConMetodo } from './metodoLogin';
 import InicioSesionTutorFamilia, { type RolPersonal } from './InicioSesionTutorFamilia';
 
@@ -224,11 +227,23 @@ export default function App() {
             si el usuario no tiene el rol admin este componetne no permite el paso */}
         <Route path="/admin" element={<RutaProtegida roles={['admin']} />}>
           <Route element={<PanelAdmin />}>
-            {/* Zsi se entra /admin, se les dirige directamente a /admin/usuarios*/}
-            <Route index element={<Navigate to="usuarios" replace />} />
-            {/*<Route path="usuarios" element={<ListadoUsuarios />} />*/}
-            <Route path="usuarios" element={<h1 className="text-titulo font-bold text-black">Usuarios</h1>} />
-            {/* parte 4 <Route path="usuarios/:id" ... /> */}
+            {/* Al entrar a /admin, redirige directamente al formulario de alta */}
+            <Route index element={<Navigate to="usuarios/alta" replace />} />
+            
+            {/* Rutas reales de gestión de usuarios */}
+            <Route 
+              path="usuarios/alta" 
+              element={<AltaUsuarioAdmin sesion={leerSesion()!} onVolver={() => window.history.back()} />} 
+            />
+            <Route 
+              path="usuarios/baja" 
+              element={<BajaUsuarioAdmin sesion={leerSesion()!} onVolver={() => window.history.back()} />} 
+            />
+            <Route 
+              path="usuarios/roles" 
+              element={<GestionRolesAdmin sesion={leerSesion()!} onVolver={() => window.history.back()} />} 
+            />
+            
           </Route>
         </Route>
 
