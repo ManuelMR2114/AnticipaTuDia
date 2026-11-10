@@ -94,3 +94,18 @@ export interface MyStudent {
   completed: number;
 }
 
+export interface UsercreateRequest {
+  fullName: string;
+  email: string;
+  role: UserRole;
+  password: string;
+  loginMethod?: StudentLoginMethod;
+}
+
+export interface Usercreated {
+  id: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
+}
+
