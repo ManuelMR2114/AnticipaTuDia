@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 
-export type MetodoSecreto = 'pin' | 'pictograms';
+export type MetodoSecreto = 'pin' | 'pictograms' | 'password' | 'pattern';
 
 /**
  * Contraseña larga que se guarda en Supabase Auth a partir del PIN o de la

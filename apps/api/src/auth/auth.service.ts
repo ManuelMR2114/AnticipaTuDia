@@ -73,4 +73,40 @@ export class AuthService {
             this.logger.warn(`No se pudo revocar la sesión: ${String(err)}`);
         }
     }
+
+    /** Cierre de sesión. */
+    async logout(accessToken: string): Promise<void> {
+
+        try {
+            const { error } =
+                await this.supabase.admin.auth.admin.signOut(
+                    accessToken,
+                    'local',
+                );
+
+            if (error) {
+                this.logger.error(
+                    `Error cerrando sesión: ${error.message}`,
+                );
+
+                throw new ServiceUnavailableException(
+                    'No se pudo cerrar la sesión',
+                );
+            }
+
+        } catch (error) {
+
+            if (error instanceof ServiceUnavailableException) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error cerrando sesión: ${String(error)}`,
+            );
+
+            throw new ServiceUnavailableException(
+                'No se pudo cerrar la sesión',
+            );
+        }
+    }
 }
