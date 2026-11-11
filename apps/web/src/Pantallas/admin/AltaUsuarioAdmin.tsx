@@ -1,12 +1,9 @@
-import PanelLateral from '../../Componentes/layout/PanelLateral';
-import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
 import { useState } from 'react';
-import type { SessionResponse, UserRole, StudentLoginMethod} from '@agenda/shared';
+import type { SessionResponse, UserRole, StudentLoginMethod, CreateUserRequest, StudentAccess, Usercreated } from '@agenda/shared';
 
 interface AltaUsuarioProps {
   // Sesión del administrador que es el token que exige la API para crear usuarios
   sesion: SessionResponse;
-  onVolver: () => void;
 }
 
 // Métodos de acceso del alumnado
@@ -33,7 +30,7 @@ const METODOS: { valor: MetodoAcceso; etiqueta: string }[] = [
   { valor: 'password', etiqueta: 'Contraseña' },
   { valor: 'pin', etiqueta: 'PIN' },
   { valor: 'pattern', etiqueta: 'Patrón' },
-  { valor: 'pictogram', etiqueta: 'Pictogramas' },
+  { valor: 'pictograms', etiqueta: 'Pictogramas' },
 ];
 
 
@@ -42,7 +39,7 @@ const claseInput =
   'h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-borde bg-transparent px-5 text-[clamp(16px,1.1vw,22px)] text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-azul-oscuro disabled:opacity-50 [&>option]:bg-white [&>option]:text-black';
 const claseLabel = 'mb-[1.2vh] block text-[clamp(18px,1.5vw,30px)] font-semibold text-black';
 
-export default function AltaUsuario({ sesion, onVolver }: AltaUsuarioProps) {
+export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
   // Datos del formulario
 
   const [nombre, setNombre] = useState('');
@@ -122,43 +119,43 @@ export default function AltaUsuario({ sesion, onVolver }: AltaUsuarioProps) {
     setExito('');
     setEnviando(true);
 
-    let cuerpo_peticion: any;
+    let cuerpo_peticion: CreateUserRequest;
 
     if (rol === 'student') {
 
-      let accessObj: any = { method: metodo };
+      let acceso: StudentAccess;
 
-      if (metodo === 'pin') {
-
-        accessObj.pin = pinAlumno.trim();
-
-      } else if (metodo === 'pattern') {
-
-        accessObj.pattern = patronAlumno.trim();
-
-      } else if (metodo === 'password') {
-
-        accessObj.password = passwordAlumno;
-
-      } else if (metodo === 'pictogram') {
-
-        // Convertimos el texto separado por comas en un array de strings con los IDS. filter(Boolean) es para descartar posibles elementos vacíos.
-        accessObj.pictograms = pictogramas.split(',').map((id) => id.trim()).filter(Boolean);
-
+      switch (metodo) {
+        case 'pin':
+          acceso = { method: 'pin', pin: pinAlumno.trim() };
+          break;
+        case 'pattern':
+          acceso = { method: 'pattern', pattern: patronAlumno.trim() };
+          break;
+        case 'password':
+          acceso = { method: 'password', password: passwordAlumno };
+          break;
+        case 'pictograms':
+          // Convertimos el texto separado por comas en un array de strings con los IDS. filter(Boolean) es para descartar posibles elementos vacíos.
+          acceso = { method: 'pictograms', pictograms: pictogramas.split(',').map((id) => id.trim()).filter(Boolean) };
+          break;
       }
-
+  
       cuerpo_peticion = {
         fullName: nombre.trim(),
         role: 'student',
-        access: accessObj,
+        acceso,
       };
+
     } else {
+
       cuerpo_peticion = {
         fullName: nombre.trim(),
         role: rol,
         email: email.trim(),
         password: password,
       };
+
     }
 
     try {
@@ -202,7 +199,7 @@ export default function AltaUsuario({ sesion, onVolver }: AltaUsuarioProps) {
 
       }
 
-      const creado: SessionResponse['user'] = await response.json();
+      const creado: Usercreated = await response.json();
       setExito(`Usuario creado correctamente: ${creado.fullName}`);
       
       // Limpiamos los campos tras el éxito
@@ -227,223 +224,173 @@ export default function AltaUsuario({ sesion, onVolver }: AltaUsuarioProps) {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
-      {/* Panel izquierda */}
-      <PanelLateral />
+    <div className="relative">
+      {/* Cabecera */}
+      <div className="mb-[5.1vh] text-left">
+        <h2 className="mb-[1.1vh] text-titulo font-bold leading-tight text-black">Alta de usuario</h2>
+        <p className="text-subtitulo font-normal italic text-black">Introduce los datos de la persona que va a usar la aplicación</p>
+      </div>
 
-      {/* Zona derecha */}
-      <main className="relative flex w-[62%] flex-col justify-center bg-crema">
-        {/* Botón Volver */}
-        <button
-          className="anillo-foco absolute top-[5.6vh] left-[2.8vw] flex size-[clamp(56px,4.5vw,90px)] items-center justify-center rounded-full border-2 border-borde bg-transparent text-borde transition-[transform,background-color] duration-200 ease-[ease] hover:-translate-x-[3px] hover:bg-black/5"
-          onClick={onVolver}
-          aria-label="Volver a la selección de rol"
-        >
-          <svg
-            className="size-[52%]"
-            viewBox="0 0 48 48"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M40 24H8M20 12L8 24l12 12" />
-          </svg>
-        </button>
+      {/* Formulario */}
+      <form onSubmit={darDeAlta} noValidate aria-busy={enviando} className="grid w-[46vw] min-w-[560px] grid-cols-2 gap-x-[3vw] gap-y-[3.2vh]">
+        {/* Nombre */}
+        <div>
+          <label htmlFor="nombre" className={claseLabel}>
+            Nombre completo
+          </label>
+          <input
+            id="nombre"
+            type="text"
+            autoComplete="off"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            className={claseInput}
+            disabled={enviando}
+          />
+        </div>
 
-        <BotonAccesibilidad />
-
-        {/* Bloque central */}
-        <div className="relative pl-[9vw]">
-          {/* Cabecera */}
-          <div className="mb-[5.1vh] text-left">
-            <h2 className="mb-[1.1vh] text-titulo font-bold leading-tight text-black">
-              Alta de usuario
-            </h2>
-            <p className="text-subtitulo font-normal italic text-black">
-              Introduce los datos de la persona que va a usar la aplicación
-            </p>
+        {/* Correo es solo para el personal (Staff) y los alumnos entra con su método de acceso */}
+        {rol !== 'student' && (
+          <div>
+            <label htmlFor="correo" className={claseLabel}>
+              Correo electrónico
+            </label>
+            <input
+              id="correo"
+              type="email"
+              autoComplete="off"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={claseInput}
+              disabled={enviando}
+            />
           </div>
+        )}
 
-          {/* Formulario */}
-          <form
-            onSubmit={darDeAlta}
-            noValidate
-            aria-busy={enviando}
-            className="grid w-[46vw] min-w-[560px] grid-cols-2 gap-x-[3vw] gap-y-[3.2vh]"
-          >
-            {/* Nombre */}
-            <div>
-              <label htmlFor="nombre" className={claseLabel}>
-                Nombre completo
-              </label>
-              <input
-                id="nombre"
-                type="text"
-                autoComplete="off"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className={claseInput}
-                disabled={enviando}
-              />
-            </div>
+        {/* Rol */}
+        <div>
+          <label htmlFor="rol" className={claseLabel}>
+            Rol
+          </label>
+          <select id="rol" value={rol} onChange={(e) => setRol(e.target.value as RolAlta)} className={claseInput} disabled={enviando}>
+            {ROLES.map((r) => (
+              <option key={r.valor} value={r.valor}>
+                {r.etiqueta}
+              </option>
+            ))}
+          </select>
+        </div>
 
-            {/* Correo */}
-            <div>
-              <label htmlFor="correo" className={claseLabel}>
-                Correo electrónico
-              </label>
-              <input
-                id="correo"
-                type="email"
-                autoComplete="off"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={claseInput}
-                disabled={enviando}
-              />
-            </div>
+        {/* Método de acceso */}
+        {rol === 'student' && (
+          <div>
+            <label htmlFor="metodo" className={claseLabel}>
+              Método de acceso
+            </label>
+            <select id="metodo" value={metodo} onChange={(e) => setMetodo(e.target.value as MetodoAcceso)} className={claseInput} disabled={enviando}>
+              {METODOS.map((m) => (
+                <option key={m.valor} value={m.valor}>
+                  {m.etiqueta}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-            {/* Rol */}
-            <div>
-              <label htmlFor="rol" className={claseLabel}>
-                Rol
-              </label>
-              <select
-                id="rol"
-                value={rol}
-                onChange={(e) => setRol(e.target.value as RolAlta)}
-                className={claseInput}
-                disabled={enviando}
-              >
-                {ROLES.map((r) => (
-                  <option key={r.valor} value={r.valor}>
-                    {r.etiqueta}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Método de acceso */}
-            {rol === 'student' && (
-              <div>
-                <label htmlFor="metodo" className={claseLabel}>
-                  Método de acceso
-                </label>
-                <select
-                  id="metodo"
-                  value={metodo}
-                  onChange={(e) => setMetodo(e.target.value as MetodoAcceso)}
+        {/* Contraseña inicial porque el administrador tiene que poder dársela a la persona. Para alumnos es la credencial de su método */}
+        <div>
+          <label htmlFor="credencial" className={claseLabel}>
+            {rol === 'student' ? 'Credencial inicial' : 'Contraseña inicial'}
+          </label>
+          {rol !== 'student' ? (
+            <input
+              id="credencial"
+              type="text"
+              autoComplete="off"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={claseInput}
+              disabled={enviando}
+            />
+          ) : (
+            <>
+              {metodo === 'pin' && (
+                <input
+                  id="credencial"
+                  type="text"
+                  maxLength={4}
+                  placeholder="Ej: 1234"
+                  value={pinAlumno}
+                  onChange={(e) => setPinAlumno(e.target.value)}
                   className={claseInput}
                   disabled={enviando}
-                >
-                  {METODOS.map((m) => (
-                    <option key={m.valor} value={m.valor}>
-                      {m.etiqueta}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Contraseña inicial porque el administrador tiene que poder dársela a la persona. Para alumnos es la credencial de su método */}
-                <div>
-                    <label htmlFor="credencial" className={claseLabel}>
-                        {rol === 'student' ? 'Credencial inicial' : 'Contraseña inicial'}
-                    </label>
-                    {rol !== 'student' ? (
-                        <input
-                        id="credencial"
-                        type="text"
-                        autoComplete="off"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={claseInput}
-                        disabled={enviando}
-                        />
-                    ) : (
-                        <>
-                        {metodo === 'pin' && (
-                            <input
-                            id="credencial"
-                            type="text"
-                            maxLength={4}
-                            placeholder="Ej: 1234"
-                            value={pinAlumno}
-                            onChange={(e) => setPinAlumno(e.target.value)}
-                            className={claseInput}
-                            disabled={enviando}
-                            />
-                        )}
-                        {metodo === 'pattern' && (
-                            <input
-                            id="credencial"
-                            type="text"
-                            placeholder="Ej: 0-1-2-5"
-                            value={patronAlumno}
-                            onChange={(e) => setPatronAlumno(e.target.value)}
-                            className={claseInput}
-                            disabled={enviando}
-                            />
-                        )}
-                        {metodo === 'password' && (
-                            <input
-                            id="credencial"
-                            type="text"
-                            value={passwordAlumno}
-                            onChange={(e) => setPasswordAlumno(e.target.value)}
-                            className={claseInput}
-                            disabled={enviando}
-                            />
-                        )}
-                        {metodo === 'pictogram' && (
-                            <input
-                            id="credencial"
-                            type="text"
-                            placeholder="uuid-1, uuid-2, uuid-3"
-                            value={pictogramas}
-                            onChange={(e) => setPictogramas(e.target.value)}
-                            className={claseInput}
-                            disabled={enviando}
-                            />
-                        )}
-                        </>
-                    )}
-                </div>
-
-            {/* Botón Dar de alta */}
-            <div className="col-span-1 self-end">
-              <button
-                type="submit"
-                disabled={enviando}
-                className="anillo-foco h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-azul-oscuro bg-azul-oscuro text-[clamp(16px,1.05vw,22px)] font-semibold text-white transition-transform hover:-translate-y-0.5 disabled:opacity-50"
-              >
-                {enviando ? 'Creando...' : 'Dar de alta'}
-              </button>
-            </div>
-          </form>
-
-          {/* Mensajes de error y éxito */}
-          {error && (
-            <div
-              role="alert"
-              className="absolute top-full left-[9vw] mt-[2vh] rounded-xl border border-red-400 bg-red-100 p-3 text-sm font-medium text-red-700"
-            >
-              {error}
-            </div>
-          )}
-          {exito && (
-            <div
-              role="status"
-              className="absolute top-full left-[9vw] mt-[2vh] rounded-xl border border-verde-agua bg-verde-agua/40 p-3 text-sm font-medium text-black"
-            >
-              {exito}
-            </div>
+                />
+              )}
+              {metodo === 'pattern' && (
+                <input
+                  id="credencial"
+                  type="text"
+                  placeholder="Ej: 0-1-2-5"
+                  value={patronAlumno}
+                  onChange={(e) => setPatronAlumno(e.target.value)}
+                  className={claseInput}
+                  disabled={enviando}
+                />
+              )}
+              {metodo === 'password' && (
+                <input
+                  id="credencial"
+                  type="text"
+                  value={passwordAlumno}
+                  onChange={(e) => setPasswordAlumno(e.target.value)}
+                  className={claseInput}
+                  disabled={enviando}
+                />
+              )}
+              {metodo === 'pictogram' && (
+                <input
+                  id="credencial"
+                  type="text"
+                  placeholder="uuid-1, uuid-2, uuid-3"
+                  value={pictogramas}
+                  onChange={(e) => setPictogramas(e.target.value)}
+                  className={claseInput}
+                  disabled={enviando}
+                />
+              )}
+            </>
           )}
         </div>
-      </main>
+
+        {/* Botón Dar de alta */}
+        <div className="col-span-1 self-end">
+          <button
+            type="submit"
+            disabled={enviando}
+            className="anillo-foco h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-azul-oscuro bg-azul-oscuro text-[clamp(16px,1.05vw,22px)] font-semibold text-white transition-transform hover:-translate-y-0.5 disabled:opacity-50"
+          >
+            {enviando ? 'Creando...' : 'Dar de alta'}
+          </button>
+        </div>
+      </form>
+
+      {/* Mensajes de error y éxito */}
+      {error && (
+        <div
+          role="alert"
+          className="absolute top-full left-0 mt-[2vh] rounded-xl border border-red-400 bg-red-100 p-3 text-sm font-medium text-red-700"
+        >
+          {error}
+        </div>
+      )}
+      {exito && (
+        <div
+          role="status"
+          className="absolute top-full left-0 mt-[2vh] rounded-xl border border-verde-agua bg-verde-agua/40 p-3 text-sm font-medium text-black"
+        >
+          {exito}
+        </div>
+      )}
     </div>
   );
 }

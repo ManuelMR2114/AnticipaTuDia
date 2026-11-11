@@ -94,18 +94,41 @@ export interface MyStudent {
   completed: number;
 }
 
-export interface UsercreateRequest {
+// Necesario para crear la estructura del objeto acorde con StudentAccessDto
+export type StudentAccess =
+  | { method: 'pin'; pin: string }
+  | { method: 'pattern'; pattern: string }
+  | { method: 'password'; password: string }
+  | { method: 'pictograms'; pictograms: string[] };
+
+export interface CreateStudentRequest {
   fullName: string;
-  email: string;
-  role: UserRole;
-  password: string;
-  loginMethod?: StudentLoginMethod;
+  role: 'student';
+  access: StudentAccess;
 }
+
+export interface CreateStaffRequest {
+  fullName: string;
+  role: Exclude<UserRole, 'student' | 'admin'>;
+  email: string;
+  password: string;
+}
+
+export type CreateUserRequest = CreateStudentRequest | CreateStaffRequest;
 
 export interface Usercreated {
   id: string;
   fullName: string;
-  email: string;
+  email: string | null;
   role: UserRole;
+}
+
+// un usuario de la lista de admin
+export interface UserList {
+  id: string;
+  fullName: string;
+  email: string | null;
+  role: UserRole;
+  deactivatedAt: string | null;
 }
 
