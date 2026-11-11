@@ -97,7 +97,7 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
       // Si lo encontramos, cogemos su etiqueta; si no, devolvemos el rol tal cual
       let etiqueta = nuevoRol;
       if (rolEncontrado) {
-        
+
           etiqueta = rolEncontrado.etiqueta;
       }
 
@@ -143,6 +143,7 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
         cargando={cargando}
         error={errorCarga}
         renderAccion={(usuario) => {
+          
           // El administrador no puede cambiarse su propio rol
           if (usuario.id === sesion.user.id) {
             return <span className="text-[clamp(13px,0.9vw,18px)] italic text-black">Tu usuario</span>;

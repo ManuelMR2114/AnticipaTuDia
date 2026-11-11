@@ -123,10 +123,11 @@ export default function BajaUsuarioAdmin({ sesion }: BajaUsuarioProps) {
 
       {/* Lista con solo los usuarios activos */}
       <ListaUsuarios
-        usuarios={usuarios.filter((u) => u.deactivatedAt === null)}
+        usuarios={usuarios.filter((usuario) => u.deactivatedAt === null)}
         cargando={cargando}
         error={errorCarga}
-        renderAccion={(u) => {
+        renderAccion={(usuario) => {
+          
           // El administrador no puede darse de baja a sí mismo 
           if (u.id === sesion.user.id) {
             return <span className="text-[clamp(13px,0.9vw,18px)] italic text-black">Tu usuario</span>;
