@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import PanelLateral from '../../Componentes/layout/PanelLateral';
 import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilidad';
 import type { SessionResponse } from '@agenda/shared';
-import type { EstudianteConMetodo } from '../../Tipos/metodoLogin';
 
 const API_URL = 'http://localhost:3000/api';
 // Login de alumno con patrón (login_method = 'pattern'). TODO: confirmar la ruta real de la API
@@ -23,7 +22,7 @@ const PUNTOS = Array.from({ length: 9 }, (_, i) => ({
 const RADIO_ENGANCHE = 15;
 
 interface InicioSesionPatronProps {
-  estudiante: EstudianteConMetodo;
+  estudiante: {id : string};
   onVolver: () => void;
   onLoginExitoso: (sessionData: SessionResponse) => void;
 }

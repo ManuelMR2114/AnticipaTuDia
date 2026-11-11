@@ -1,13 +1,16 @@
 import { useNavigate } from 'react-router';
 import { borrarSesion } from '../../Utilidades/sesion';
 
-/** Botón de cierre de sesión: borra el token y vuelve al inicio. */
+
+//boton de cerrar sesion, se borra el token y se vuelve a la pantalla de inicio 
+
 interface BotonCerrarSesionProps {
   className?: string;
-  // 'oscuro' = para usarlo sobre fondo azul oscuro (barra lateral)
   variante?: 'claro' | 'oscuro';
 }
 
+
+//dos colores variantes
 const VARIANTES = {
   claro: 'border-azul-oscuro text-azul-oscuro hover:bg-azul-oscuro hover:text-white',
   oscuro: 'border-white text-white hover:bg-white hover:text-azul-oscuro',

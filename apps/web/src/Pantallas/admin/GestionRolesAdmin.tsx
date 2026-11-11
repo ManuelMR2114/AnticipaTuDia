@@ -8,9 +8,9 @@ interface GestionRolesProps {
   sesion: SessionResponse;
 }
 
-type Roles = Extract<UserRole, 'student' | 'tutor' | 'family' | 'specialist' | 'teacher'>;
+type Roles = Extract<UserRole, 'student' | 'tutor' | 'family' | 'specialist' | 'teacher' | 'admin' >;
 
-const ROLES: { valor: RolAlta; etiqueta: string }[] = [
+const ROLES: { valor: Roles; etiqueta: string }[] = [
   { valor: 'student', etiqueta: 'Estudiante' },
   { valor: 'tutor', etiqueta: 'Tutor' },
   { valor: 'family', etiqueta: 'Familiar' },
@@ -95,7 +95,7 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
       const rolEncontrado = ROLES.find((rol) => rol.valor === nuevoRol);
 
       // Si lo encontramos, cogemos su etiqueta; si no, devolvemos el rol tal cual
-      let etiqueta = nuevoRol;
+      let etiqueta: string = nuevoRol;
       if (rolEncontrado) {
 
           etiqueta = rolEncontrado.etiqueta;
@@ -156,9 +156,9 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
           return (
             <div className="flex items-center gap-3">
               <select
-                aria-label={`Nuevo rol de ${u.fullName}`}
+                aria-label={`Nuevo rol de ${usuario.fullName}`}
                 value={elegido}
-                onChange={(e) => setRolesElegidos({ ...rolesElegidos, [u.id]: e.target.value as UserRole })}
+                onChange={(e) => setRolesElegidos({ ...rolesElegidos, [usuario.id]: e.target.value as UserRole })}
                 className={claseSelect}
                 disabled={enviandoId !== null}
               >
@@ -173,10 +173,10 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
               <button
                 type="button"
                 className={claseBotonPrimario}
-                disabled={enviandoId !== null || elegido === u.role}
-                onClick={() => cambiarRol(u, elegido)}
+                disabled={enviandoId !== null || elegido === usuario.role}
+                onClick={() => cambiarRol(usuario, elegido)}
               >
-                {enviandoId === u.id ? 'Guardando...' : 'Asignar rol'}
+                {enviandoId === usuario.id ? 'Guardando...' : 'Asignar rol'}
               </button>
             </div>
           );

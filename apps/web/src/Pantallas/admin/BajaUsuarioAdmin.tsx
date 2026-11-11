@@ -123,22 +123,22 @@ export default function BajaUsuarioAdmin({ sesion }: BajaUsuarioProps) {
 
       {/* Lista con solo los usuarios activos */}
       <ListaUsuarios
-        usuarios={usuarios.filter((usuario) => u.deactivatedAt === null)}
+        usuarios={usuarios.filter((usuario) => usuario.deactivatedAt === null)}
         cargando={cargando}
         error={errorCarga}
         renderAccion={(usuario) => {
           
           // El administrador no puede darse de baja a sí mismo 
-          if (u.id === sesion.user.id) {
+          if (usuario.id === sesion.user.id) {
             return <span className="text-[clamp(13px,0.9vw,18px)] italic text-black">Tu usuario</span>;
           }
 
           // Confirmar o cancelar
-          if (confirmandoId === u.id) {
+          if (confirmandoId === usuario.id) {
             return (
               <div className="flex gap-3">
-                <button type="button" className={claseBotonPrimario} disabled={enviandoId !== null} onClick={() => darDeBaja(u)}>
-                  {enviandoId === u.id ? 'Procesando...' : 'Confirmar baja'}
+                <button type="button" className={claseBotonPrimario} disabled={enviandoId !== null} onClick={() => darDeBaja(usuario)}>
+                  {enviandoId === usuario.id ? 'Procesando...' : 'Confirmar baja'}
                 </button>
                 <button type="button" className={claseBotonSecundario} disabled={enviandoId !== null} onClick={() => setConfirmandoId(null)}>
                   Cancelar
@@ -149,7 +149,7 @@ export default function BajaUsuarioAdmin({ sesion }: BajaUsuarioProps) {
 
           // Pedir la baja
           return (
-            <button type="button" className={claseBotonSecundario} disabled={enviandoId !== null} onClick={() => setConfirmandoId(u.id)}>
+            <button type="button" className={claseBotonSecundario} disabled={enviandoId !== null} onClick={() => setConfirmandoId(usuario.id)}>
               Dar de baja
             </button>
           );

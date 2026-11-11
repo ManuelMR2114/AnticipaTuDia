@@ -1,7 +1,10 @@
-/** Panel azul de la izquierda, idéntico en todas las pantallas de inicio. */
+//panel lateral de la izquierda, repetimos este componente en todas las pantallas de inicio
 export default function PanelLateral() {
+
     return (
       <aside className="flex w-[38%] flex-col justify-between bg-azul-oscuro px-[3.5vw] pt-[8.8vh] pb-0 text-white">
+
+        {/*logo*/}
         <div>
           <img
             src="/logo-app-sin-fondo.png"
@@ -10,6 +13,9 @@ export default function PanelLateral() {
           />
         </div>
   
+
+  
+        {/*frases*/}
         <div className="mb-[23vh]">
           <p className="mb-[4.5vh] text-lateral-sub font-normal italic">
             TU AGENDA, TU MANERA
@@ -27,6 +33,9 @@ export default function PanelLateral() {
             para acompañarte en cada paso
           </p>
         </div>
+
+
+
       </aside>
     );
   }

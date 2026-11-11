@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { SessionResponse, UserList } from '@agenda/shared';
+import type { SessionResponse, UserList, UserRole } from '@agenda/shared';
+import type {ReactNode} from 'react'; 
 
-type RolLista = Extract<UserRole, 'student' | 'tutor' | 'family' | 'specialist' | 'teacher'>;
 
-const ROLES: { valor: RolAlta; etiqueta: string }[] = [
+type RolLista = Extract<UserRole, 'student' | 'tutor' | 'family' | 'specialist' | 'teacher' | 'admin' >;
+
+const ROLES: { valor: RolLista; etiqueta: string }[] = [
   { valor: 'student', etiqueta: 'Estudiante' },
   { valor: 'tutor', etiqueta: 'Tutor' },
   { valor: 'family', etiqueta: 'Familiar' },
@@ -19,7 +21,7 @@ interface ListaUsuariosProps {
 
   // Usamos renderAccion para que aparezca a la derecha de cada usuario lo que se necesite para la acción determinada ya sea un boton para la baja o un selector.
   // Gracias a esto hacemos que ListaUsuarios sea reutilizable, solo se encarga de pintar la lista de usuarios y gestionar la lista sin saber la acción que se va a realizar.
-  renderAccion: (usuario: UserSummary) => ReactNode;
+  renderAccion: (usuario: UserList) => ReactNode;
 
 }
 
@@ -68,23 +70,23 @@ export default function ListaUsuarios({ usuarios, cargando, error, renderAccion 
         <p className="text-subtitulo italic text-black">No hay usuarios que mostrar</p>
       ) : (
         <ul className="flex flex-col gap-[1.4vh]">
-          {filtrados.map((u) => ( // Se usa de clave el id pero no se escribe en pantalla
+          {filtrados.map((usuario) => ( // Se usa de clave el id pero no se escribe en pantalla
             
             <li
-              key={u.id}
+              key={usuario.id}
               className="flex items-center justify-between gap-4 rounded-xl border-[1.5px] border-borde px-5 py-3"
             >
               {/* Parte Izquierda que identifica al usuario */}
               <div className="min-w-0">
-                <p className="truncate text-[clamp(16px,1.2vw,24px)] font-semibold text-black">{u.fullName}</p>
+                <p className="truncate text-[clamp(16px,1.2vw,24px)] font-semibold text-black">{usuario.fullName}</p>
                 <p className="truncate text-[clamp(13px,0.9vw,18px)] text-black">
-                  {ETIQUETA_ROL[u.role]}
-                  {u.email ? ` · ${u.email}` : ''}
+                  {ROLES[usuario.role]}
+                  {usuario.email ? ` · ${usuario.email}` : ''}
                 </p>
               </div>
 
               {/* Parte Derecha que especifica las acciones sobre ese usuario */}
-              <div className="shrink-0">{renderAccion(u)}</div>
+              <div className="shrink-0">{renderAccion(usuario)}</div>
             </li>
           ))}
         </ul>

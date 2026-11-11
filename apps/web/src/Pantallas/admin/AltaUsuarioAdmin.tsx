@@ -30,7 +30,7 @@ const METODOS: { valor: MetodoAcceso; etiqueta: string }[] = [
   { valor: 'password', etiqueta: 'Contraseña' },
   { valor: 'pin', etiqueta: 'PIN' },
   { valor: 'pattern', etiqueta: 'Patrón' },
-  { valor: 'pictograms', etiqueta: 'Pictogramas' },
+  { valor: 'pictogram', etiqueta: 'Pictogramas' },
 ];
 
 
@@ -135,7 +135,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
         case 'password':
           acceso = { method: 'password', password: passwordAlumno };
           break;
-        case 'pictograms':
+        case 'pictogram':
           // Convertimos el texto separado por comas en un array de strings con los IDS. filter(Boolean) es para descartar posibles elementos vacíos.
           acceso = { method: 'pictograms', pictograms: pictogramas.split(',').map((id) => id.trim()).filter(Boolean) };
           break;
@@ -144,7 +144,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
       cuerpo_peticion = {
         fullName: nombre.trim(),
         role: 'student',
-        acceso,
+        access: acceso,
       };
 
     } else {
