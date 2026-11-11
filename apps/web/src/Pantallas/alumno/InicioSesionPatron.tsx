@@ -4,12 +4,13 @@ import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilid
 import type { SessionResponse } from '@agenda/shared';
 
 const API_URL = 'http://localhost:3000/api';
-// Login de alumno con patrón (login_method = 'pattern'). TODO: confirmar la ruta real de la API
+
 const RUTA_LOGIN_ALUMNO = '/auth/student/login';
-// Mínimo de puntos para que el patrón sea válido
+
+//puntos para que el patron sea valido
 const MIN_PUNTOS = 4;
 
-// Rejilla 3x3 dibujada en un lienzo de 100x100. Los puntos se numeran 0..8 (fila a fila).
+//rejilla 3x3 donde los puntos van enumerados fila a fila del 0 al 8
 const CENTROS = [16.67, 50, 83.33];
 const PUNTOS = Array.from({ length: 9 }, (_, i) => ({
   indice: i,
@@ -18,59 +19,78 @@ const PUNTOS = Array.from({ length: 9 }, (_, i) => ({
   x: CENTROS[i % 3],
   y: CENTROS[Math.floor(i / 3)],
 }));
-// Radio (en unidades del lienzo) en el que el dedo "engancha" un punto
+
 const RADIO_ENGANCHE = 15;
 
 interface InicioSesionPatronProps {
+
   estudiante: {id : string};
   onVolver: () => void;
   onLoginExitoso: (sessionData: SessionResponse) => void;
+
 }
 
 export default function InicioSesionPatron({
+
   estudiante,
   onVolver,
   onLoginExitoso,
+
 }: InicioSesionPatronProps) {
-  // Puntos tocados, en orden
+
+  //puntos tocados en orden 
   const [patron, setPatron] = useState<number[]>([]);
-  // Posición actual del dedo, para dibujar la línea que sigue al puntero
+
+  //posicion acutual para dibujar la linea que sigue el raton
   const [puntero, setPuntero] = useState<{ x: number; y: number } | null>(null);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
   const dibujando = useRef(false);
   const lienzo = useRef<HTMLDivElement>(null);
 
-  // Añade un punto; si el trazo salta por encima de un punto sin marcar, lo marca también
+  //se añade el punto, si el trazo pasa por encima de un punto sin marca, pasa a estar marcado
   const anadirPunto = (actual: number[], indice: number): number[] => {
+
     if (actual.includes(indice)) return actual;
+
     if (actual.length === 0) return [indice];
+
     const a = PUNTOS[actual[actual.length - 1]];
     const b = PUNTOS[indice];
     const salto = (b.fila - a.fila) % 2 === 0 && (b.col - a.col) % 2 === 0;
     const medio = salto ? (a.fila + b.fila) / 2 * 3 + (a.col + b.col) / 2 : -1;
+
     if (medio >= 0 && medio !== a.indice && medio !== b.indice && !actual.includes(medio)) {
+
       return [...actual, medio, indice];
+      
     }
     return [...actual, indice];
   };
 
-  // Convierte la posición del puntero a coordenadas del lienzo (0-100)
+  //pasar a coordenadas del lienzo 
   const aCoordenadas = (e: React.PointerEvent) => {
+
     const caja = lienzo.current!.getBoundingClientRect();
+
     return {
       x: ((e.clientX - caja.left) / caja.width) * 100,
       y: ((e.clientY - caja.top) / caja.height) * 100,
     };
+
   };
 
   const puntoCercano = (x: number, y: number): number | null => {
+
     const p = PUNTOS.find((pt) => Math.hypot(pt.x - x, pt.y - y) <= RADIO_ENGANCHE);
     return p ? p.indice : null;
+
   };
 
   const enviar = async (secuencia: number[]) => {
+
     if (secuencia.length < MIN_PUNTOS) {
+
       setError(`Une al menos ${MIN_PUNTOS} puntos.`);
       setPatron([]);
       return;
@@ -78,6 +98,8 @@ export default function InicioSesionPatron({
 
     setError('');
     setCargando(true);
+
+
     try {
       const respuesta = await fetch(`${API_URL}${RUTA_LOGIN_ALUMNO}`, {
         method: 'POST',
@@ -104,8 +126,9 @@ export default function InicioSesionPatron({
     }
   };
 
-  // ---- Ratón / dedo ----
+
   const alPulsar = (e: React.PointerEvent) => {
+    
     if (cargando) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     dibujando.current = true;
@@ -131,7 +154,6 @@ export default function InicioSesionPatron({
     enviar(patron);
   };
 
-  // ---- Teclado: Intro/Espacio marca el punto; Intro sobre el último punto envía; Escape borra ----
   const alTeclearPunto = (e: React.KeyboardEvent, indice: number) => {
     if (cargando) return;
     if (e.key === 'Escape') {
@@ -182,7 +204,6 @@ export default function InicioSesionPatron({
             </p>
           </div>
 
-          {/* Zona de mensajes con altura fija para que la rejilla no salte */}
           <div className="mb-[2vh] min-h-[48px] w-[32vw] min-w-[300px]">
             {error && (
               <div
@@ -213,7 +234,6 @@ export default function InicioSesionPatron({
                 cargando ? 'opacity-50' : ''
               }`}
             >
-              {/* Líneas del trazo */}
               <svg
                 className="pointer-events-none absolute inset-0 size-full"
                 viewBox="0 0 100 100"
@@ -242,7 +262,6 @@ export default function InicioSesionPatron({
                 )}
               </svg>
 
-              {/* Puntos: botones para poder usarlos con teclado */}
               {PUNTOS.map((p) => {
                 const marcado = patron.includes(p.indice);
                 return (

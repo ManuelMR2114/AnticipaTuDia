@@ -4,15 +4,18 @@ import BotonAccesibilidad from '../../Componentes/accesibilidad/BotonAccesibilid
 import type { SessionResponse } from '@agenda/shared';
 
 const API_URL = 'http://localhost:3000/api';
-// Login de alumno con PIN (login_method = 'pin'). TODO: confirmar la ruta real de la API
+
+
 const RUTA_LOGIN_ALUMNO = '/auth/student/login';
 
 
 interface InicioSesionCodigoProps {
-  // Alumno elegido en "¿Quién eres?"
+
+  //alumno elegido en la pantalla de quien eres
   estudiante: {id: string};
   onVolver: () => void;
-  // Entrega la sesión a App para que sepa quién ha entrado
+
+  //entrega a la sesion de la app para que tenga quien ha entrado
   onLoginExitoso: (sessionData: SessionResponse) => void;
 }
 
@@ -28,7 +31,7 @@ export default function InicioSesionCodigo({
 }: InicioSesionCodigoProps) {
   const [codigo, setCodigo] = useState('');
   const [error, setError] = useState('');
-  // true mientras esperamos a la API (evita envíos dobles)
+
   const [cargando, setCargando] = useState(false);
 
   const procesarLogin = async (e: React.FormEvent) => {
@@ -43,6 +46,7 @@ export default function InicioSesionCodigo({
     setError('');
     setCargando(true);
 
+    //hacemos el post para ver que el codigo sea el correcto
     try {
       const respuesta = await fetch(`${API_URL}${RUTA_LOGIN_ALUMNO}`, {
         method: 'POST',
@@ -51,23 +55,33 @@ export default function InicioSesionCodigo({
       });
 
       if (!respuesta.ok) {
+
         if (respuesta.status === 401) setError('Código incorrecto. Inténtalo de nuevo.');
         else if (respuesta.status === 503) setError('Servicio no disponible');
         else setError('Error al iniciar sesión');
         return;
+
       }
+
 
       const sessionData: SessionResponse = await respuesta.json();
       onLoginExitoso(sessionData);
+
     } catch {
+
       setError('No se pudo conectar con el servidor');
+
     } finally {
+
       setCargando(false);
     }
   };
 
+
+
   return (
     <div className="flex min-h-screen w-full">
+      
       <PanelLateral />
 
       <main className="relative flex w-[62%] flex-col justify-center bg-crema">

@@ -8,15 +8,16 @@ const API_URL = 'http://localhost:3000/api';
 
 interface InicioSesionClaseProps {
   onVolver: () => void;
-  // Avisa a App de qué aula ha elegido el alumno
+
+  //se avisa App que en el aula se ha seleccionado alumno
   onSeleccionarClase: (aula: Classroom) => void;
 }
 
-// Colores de las tarjetas (clases completas para que Tailwind las genere).
-// Se asignan por posición, así la tabla no necesita una columna de color.
+
+//distintos colores para los fondos de las tarjetas de clase
 const COLORES_TARJETA = ['bg-amarillo-pastel', 'bg-azul-claro', 'bg-verde-agua', 'bg-salmon'];
 
-// Inicial de la clase: "Aula Girasol" -> "G"
+//se saca la inicial de la clase para ponerla en el icono 
 const obtenerInicial = (nombre: string): string =>
   nombre.replace(/^Aula\s+/i, '').charAt(0).toUpperCase();
 
@@ -25,11 +26,14 @@ export default function InicioSesionClase({ onVolver, onSeleccionarClase }: Inic
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Al abrir la pantalla, pide las aulas a la API
+  //al abrir pido las clases a la api
   useEffect(() => {
-    // Permite cancelar la petición si el usuario sale de la pantalla antes de que termine
+
+    //por si te sales antes de q cargen se aborta la peticion 
     const controlador = new AbortController();
 
+
+    
     const cargarClases = async (): Promise<void> => {
       try {
         const respuesta = await fetch(`${API_URL}/classrooms`, { signal: controlador.signal });
@@ -37,20 +41,28 @@ export default function InicioSesionClase({ onVolver, onSeleccionarClase }: Inic
 
         const datos: Classroom[] = await respuesta.json();
         setClases(datos);
+
       } catch (e) {
-        // Una petición cancelada a propósito no es un error que mostrar
+
+        //se diferencia el error por aborto, del error de que la solicitud ha fallado 
         if ((e as Error).name !== 'AbortError') {
+
           console.error('Error al cargar las clases:', e);
           setError('No se han podido cargar las clases. Inténtalo de nuevo.');
+
         }
+
       } finally {
+
         if (!controlador.signal.aborted) setCargando(false);
       }
     };
 
     cargarClases();
     return () => controlador.abort();
+
   }, []);
+
 
   return (
     <div className="flex min-h-screen w-full">
@@ -84,7 +96,8 @@ export default function InicioSesionClase({ onVolver, onSeleccionarClase }: Inic
             Selecciona el aula a la que perteneces
           </p>
 
-          {/* Estados: cargando / error / sin clases */}
+          {/*posibles estados de las clases cargando/error/sin clases */}
+
           {cargando && (
             <p role="status" className="text-subtitulo text-[#111]">
               Cargando clases…
