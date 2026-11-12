@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router';
 import type { Classroom, SessionResponse } from '@agenda/shared';
-
+import type {ReactNode } from 'react';
 
 //importacion de las distinta pantallas que forman el flujo del login 
 import SeleccionRol from './Pantallas/acceso/SeleccionRol';
@@ -213,6 +213,18 @@ function FlujoAcceso() {
   );
 }
 
+// Lee la sesión en el momento de pintar la sección
+// Si no hay una sesión válida, vuelve al login en lugar de romper la pantalla
+function ConSesion({ children }: { children: (sesion: SessionResponse) => ReactNode }) {
+  const sesion = leerSesion();
+
+  if (!sesion) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children(sesion)}</>;
+}
+
 export default function App() {
   return (
     
@@ -231,17 +243,18 @@ export default function App() {
             <Route index element={<Navigate to="usuarios/alta" replace />} />
             
             {/* Rutas reales de gestión de usuarios */}
-            <Route 
-              path="usuarios/alta" 
-              element={<AltaUsuarioAdmin sesion={leerSesion()!} onVolver={() => window.history.back()} />} 
+            
+            <Route
+              path="usuarios/alta"
+              element={<ConSesion>{(sesion) => <AltaUsuarioAdmin sesion={sesion} />}</ConSesion>}
             />
-            <Route 
-              path="usuarios/baja" 
-              element={<BajaUsuarioAdmin sesion={leerSesion()!} onVolver={() => window.history.back()} />} 
+            <Route
+              path="usuarios/baja"
+              element={<ConSesion>{(sesion) => <BajaUsuarioAdmin sesion={sesion} />}</ConSesion>}
             />
-            <Route 
-              path="usuarios/roles" 
-              element={<GestionRolesAdmin sesion={leerSesion()!} onVolver={() => window.history.back()} />} 
+            <Route
+              path="usuarios/roles"
+              element={<ConSesion>{(sesion) => <GestionRolesAdmin sesion={sesion} />}</ConSesion>}
             />
 
           </Route>
