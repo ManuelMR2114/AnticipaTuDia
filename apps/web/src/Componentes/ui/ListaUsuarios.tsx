@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { SessionResponse, UserList, UserRole } from '@agenda/shared';
-import type {ReactNode} from 'react'; 
-
+import { useState, type ReactNode } from 'react';
+import type { UserList, UserRole } from '@agenda/shared';
 
 type RolLista = Extract<UserRole, 'student' | 'tutor' | 'family' | 'specialist' | 'teacher' | 'admin' >;
 
-const ROLES: { valor: RolLista; etiqueta: string }[] = [
-  { valor: 'student', etiqueta: 'Estudiante' },
-  { valor: 'tutor', etiqueta: 'Tutor' },
-  { valor: 'family', etiqueta: 'Familiar' },
-  { valor: 'specialist', etiqueta: 'Especialista' },
-  { valor: 'teacher', etiqueta: 'Profesor' },
-  { valor: 'admin', etiqueta: 'Administrador' },
-];
+// Etiqueta en español de cada rol, para mostrarla junto al nombre del usuario
+const ROLES: Record<RolLista, string> = {
+  student: 'Estudiante',
+  tutor: 'Tutor',
+  family: 'Familiar',
+  specialist: 'Especialista',
+  teacher: 'Profesor',
+  admin: 'Administrador',
+};
 
 interface ListaUsuariosProps {
   usuarios: UserList[];
