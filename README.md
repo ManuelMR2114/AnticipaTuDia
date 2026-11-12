@@ -24,9 +24,9 @@ Requisitos: Node y pnpm.
 
 ```bash
 pnpm install
-pnpm --filter @agenda/shared build        # el contrato se consume compilado
 cp apps/api/.env.example apps/api/.env    # completar las claves de Supabase
 pnpm dev   # web en http://localhost:5173 y API en http://localhost:3000/api
+# `pnpm dev` compila @agenda/shared y lo deja en watch automáticamente
 ```
 
 Para arrancar cada parte por separado: `pnpm dev:web` y `pnpm dev:api`.

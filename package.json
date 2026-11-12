@@ -5,9 +5,9 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm --parallel --filter web --filter api dev",
-    "dev:web": "pnpm --filter web dev",
-    "dev:api": "pnpm --filter api start:dev",
+    "dev": "pnpm --filter @agenda/shared build && pnpm --parallel --filter @agenda/shared --filter web --filter api dev",
+    "dev:web": "pnpm --filter @agenda/shared build && pnpm --filter web dev",
+    "dev:api": "pnpm --filter @agenda/shared build && pnpm --filter api start:dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint"
   },
