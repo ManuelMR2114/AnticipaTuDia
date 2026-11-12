@@ -44,7 +44,7 @@ export default function BajaUsuarioAdmin({ sesion }: BajaUsuarioProps) {
       
       // Se obtiene el id del usuario que el administrador ha elegido en la lista
 
-      const response = await fetch(`${API_URL}${RUTA_BAJA_USUARIO}/${usuario.id}/deactivate`, {
+      const response = await fetch(`${API_URL}${RUTA_BAJA_USUARIO}/${usuario.id}/deactivated_at`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
