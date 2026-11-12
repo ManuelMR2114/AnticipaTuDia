@@ -73,7 +73,7 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
 
         } else if (response.status === 400) {
 
-          setError('No puedes dar de baja tu propio usuario');
+          setError('No puedes cambiar un tutor/familiar/especialista/admin a estudiante');
 
         } else if (response.status === 404) {
 
