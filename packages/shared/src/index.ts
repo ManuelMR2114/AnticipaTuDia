@@ -31,14 +31,6 @@ export interface Classroom {
   groupName: string | null;
 }
 
-//GET /classrooms/:id/students 
-export interface ClassroomStudent {
-  id: string;
-  fullName: string;
-  loginMethod?: StudentLoginMethod | null;
-} // no es necesaria, si ya tenemos una clase classroom 
-
-
 export type StudentLoginMethod =
   | 'password'
   | 'pin'

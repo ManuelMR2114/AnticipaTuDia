@@ -29,8 +29,7 @@ Se dejan documentadas para no volver a discutirlas.
 - Mejoras opcionales sobre ese flujo:
   - [ ] `dev:web` y `dev:api` solo compilan `shared` una vez. Si editáis `shared` con el servidor en marcha hay que recompilar a mano. Opción: añadir un script `dev` en `shared` con `tsc --watch --preserveWatchOutput` y lanzarlo en paralelo.
   - [ ] Comprobar que `packages/shared/package.json` tiene `main`, `types` y `exports` apuntando a `dist/`, y `"files": ["dist"]`.
-  - [ ] Asegurar que `dist/` está en `.gitignore` (en `apps/web` y en `packages/shared`) y que el CI ejecuta el build de `shared` antes del resto.
-  - [ ] Cuando `shared` exporte código en runtime (no solo tipos): Nest suele ejecutarse en CommonJS y Vite usa ESM. En ese momento conviene compilar con `tsup` a formato dual (CJS + ESM). Mientras sea solo tipos, no importa.
+  - [X] Asegurar que `dist/` está en `.gitignore` (en `apps/web` y en `packages/shared`) y que el CI ejecuta el build de `shared` antes del resto.
 
 ---
 
@@ -51,7 +50,7 @@ Se dejan documentadas para no volver a discutirlas.
     | { method: 'pictogram'; pictograms: string[] };
   ```
 
-- [ ] **Eliminar `ClassroomStudent`** (ya marcado como innecesario en el propio código). Reutilizar un tipo `Student` base o `Pick<UserSummary, 'id' | 'fullName'> & { loginMethod?: StudentLoginMethod | null }`.
+- [X] **Eliminar `ClassroomStudent`** (ya marcado como innecesario en el propio código). Reutilizar un tipo `Student` base o `Pick<UserSummary, 'id' | 'fullName'> & { loginMethod?: StudentLoginMethod | null }`.
 
 ### Nombres
 
