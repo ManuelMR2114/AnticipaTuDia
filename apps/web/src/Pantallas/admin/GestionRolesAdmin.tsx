@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { SessionResponse, UserRole, UserList } from '@agenda/shared';
+import type { SessionResponse, UserRole, UserSummary } from '@agenda/shared';
 import ListaUsuarios from '../../Componentes/ui/ListaUsuarios';
 import { useUsuarios } from '../../Hooks/UseUsuarios';
 
@@ -42,7 +42,7 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
 
-  const cambiarRol = async (usuario: UserList, nuevoRol: UserRole) => {
+  const cambiarRol = async (usuario: UserSummary, nuevoRol: UserRole) => {
 
     // Limpiamos mensajes previos y bloqueamos los botones
     setError('');

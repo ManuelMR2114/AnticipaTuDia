@@ -10,7 +10,7 @@ import {
     Req,
     UseGuards,
 } from '@nestjs/common';
-import type { SessionResponse, UserList } from '@agenda/shared';
+import type { SessionResponse, UserSummary } from '@agenda/shared';
 import { Roles } from '../auth/guards/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard.js';
@@ -64,7 +64,7 @@ export class UsersController {
     /** listado de usuarios para el panel de administración. */
     @Get()
     @Roles('admin')
-    findAll(): Promise<UserList[]> {
+    findAll(): Promise<UserSummary[]> {
         return this.users.findAll();
     }
 

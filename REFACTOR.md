@@ -4,9 +4,9 @@ Revisión de `apps/web` y `packages/shared`. Marca cada punto con `[x]` cuando e
 
 ## Prioridades (orden recomendado)
 
-- [ ] 1. Arreglar la inconsistencia `pictogram` / `pictograms` en `shared` (único punto que puede fallar en runtime)
+- [x] 1. Arreglar la inconsistencia `pictogram` / `pictograms` en `shared` (único punto que puede fallar en runtime)
 - [ ] 2. Unificar nombres de carpetas y hooks (`use...`) en `apps/web`
-- [ ] 3. Reorganizar `shared` por dominios (ver estructura propuesta)
+- [x] 3. Reorganizar `shared` por dominios (ver estructura propuesta)
 - [ ] 4. Añadir capa de API centralizada y archivo de rutas en `web`
 - [ ] 5. Reorganizar `apps/web` por funcionalidades (ver estructura propuesta)
 
@@ -27,7 +27,7 @@ Se dejan documentadas para no volver a discutirlas.
 - Se mantiene `dist/` porque `shared` puede exportar funciones o constantes en el futuro, no solo tipos.
 - El flujo de scripts del `package.json` raíz (`pnpm --filter @agenda/shared build` antes de `dev`) es correcto. `pnpm -r build` ordena los paquetes por dependencias, así que `shared` se compila antes que `web` y `api`.
 - Mejoras opcionales sobre ese flujo:
-  - [ ] `dev:web` y `dev:api` solo compilan `shared` una vez. Si editáis `shared` con el servidor en marcha hay que recompilar a mano. Opción: añadir un script `dev` en `shared` con `tsc --watch --preserveWatchOutput` y lanzarlo en paralelo.
+  - [ ] `dev:web` y `dev:api` solo compilan `shared` una vez. Si editáis `shared` con el servidor en marcha hay que recompilar a mano. Opción: añadir un script `dev` en `shared` con `tsc --watch --preserveWatchOutput` y lanzarlo en paralelo. Hecho en parte: el script `dev` de `shared` ya es ese watch y `pnpm dev` lo lanza en paralelo; `dev:web` y `dev:api` siguen compilando una sola vez.
   - [ ] Comprobar que `packages/shared/package.json` tiene `main`, `types` y `exports` apuntando a `dist/`, y `"files": ["dist"]`.
   - [X] Asegurar que `dist/` está en `.gitignore` (en `apps/web` y en `packages/shared`) y que el CI ejecuta el build de `shared` antes del resto.
 
@@ -37,7 +37,7 @@ Se dejan documentadas para no volver a discutirlas.
 
 ### Bugs e inconsistencias
 
-- [ ] **`'pictogram'` vs `'pictograms'`.** `StudentLoginMethod` usa `'pictogram'` y `StudentAccess` usa `method: 'pictograms'`. Unificar y comprobar que coincide con lo que espera el backend (igual para `password`, `pin`, `pattern`). Propuesta de fuente única de verdad:
+- [x] **`'pictogram'` vs `'pictograms'`.** `StudentLoginMethod` usa `'pictogram'` y `StudentAccess` usa `method: 'pictograms'`. Unificar y comprobar que coincide con lo que espera el backend (igual para `password`, `pin`, `pattern`). Propuesta de fuente única de verdad:
 
   ```ts
   export const STUDENT_LOGIN_METHODS = ['password', 'pin', 'pattern', 'pictogram'] as const;
@@ -50,16 +50,22 @@ Se dejan documentadas para no volver a discutirlas.
     | { method: 'pictogram'; pictograms: string[] };
   ```
 
+  Hecho: `STUDENT_LOGIN_METHODS` y el nuevo `StudentAccess` viven en `packages/shared/src/auth.ts` con `method: 'pictogram'`. El frontend (`AltaUsuarioAdmin`) ya envía ese valor y el backend lo acepta: `StudentAccessDto` (`@IsIn`), `LOGIN_METHOD_DB` y `MetodoSecreto` usan `'pictogram'`. Se mantienen sin cambiar la ruta `/pictograms`, la tabla `pictograms` y el campo `pictograms: string[]`. Ojo: `derivarPassword` incluye el método en el HMAC, así que las altas nuevas derivan con `pictogram`; si el login de alumnos deriva la contraseña, debe usar el mismo literal.
+
 - [X] **Eliminar `ClassroomStudent`** (ya marcado como innecesario en el propio código). Reutilizar un tipo `Student` base o `Pick<UserSummary, 'id' | 'fullName'> & { loginMethod?: StudentLoginMethod | null }`.
 
 ### Nombres
 
-- [ ] Renombrar `Usercreated` → `UserCreated`.
-- [ ] Renombrar `UserList` a algo que refleje que es un elemento y no una lista (`UserSummary` o `AdminUserListItem`).
+- [X] Renombrar `Usercreated` → `UserCreated`.
+- [X] Renombrar `UserList` a algo que refleje que es un elemento y no una lista (`UserSummary` o `AdminUserListItem`).
+
+  Hecho también en los consumidores: `UserSummary`/`UserCreated` en el frontend (`ListaUsuarios`, `UseUsuarios`, `AltaUsuarioAdmin`, `BajaUsuarioAdmin`, `GestionRolesAdmin`) y en el backend (`users.controller`, `users.service`). Verificado con `tsc -b` + build de Vite en `apps/web` y `tsc --noEmit` en `apps/api`, sin errores.
 - [ ] Decidir criterio de nombres para los DTOs: hay `...Request` / `...Response` en unos tipos (`SessionResponse`, `CreateStudentRequest`) y no en otros (`Task`, `MyStudent`). Propuesta: `Request`/`Response` para lo que viaja por la API y nombre limpio para entidades del dominio.
-- [ ] Crear `type ISODateString = string` y usarlo en `dueAt`, `startedAt`, `completedAt`, `deactivatedAt` para documentar que son fechas ISO 8601.
+- [x] Crear `type ISODateString = string` y usarlo en `dueAt`, `startedAt`, `completedAt`, `deactivatedAt` para documentar que son fechas ISO 8601. Hecho en `packages/shared/src/common.ts`; lo usan `Task` (`dueAt`, `startedAt`, `completedAt`) y `UserSummary` (`deactivatedAt`).
 
 ### Estructura propuesta
+
+Hecho: `packages/shared/src/` ya sigue esta estructura (`index.ts` solo reexporta; un archivo por dominio). Además se han extraído `SessionUser` (en `auth.ts`) y `StaffRole`, y `LinkRelation` es alias de `StaffRole`.
 
 Agrupar por dominio, con un archivo por dominio. Se divide en carpetas solo cuando un archivo crezca demasiado.
 

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import type { UserList, UserRole } from '@agenda/shared';
+import type { UserSummary, UserRole } from '@agenda/shared';
 
 type RolLista = Extract<UserRole, 'student' | 'tutor' | 'family' | 'specialist' | 'teacher' | 'admin' >;
 
@@ -14,13 +14,13 @@ const ROLES: Record<RolLista, string> = {
 };
 
 interface ListaUsuariosProps {
-  usuarios: UserList[];
+  usuarios: UserSummary[];
   cargando: boolean;
   error: string;
 
   // Usamos renderAccion para que aparezca a la derecha de cada usuario lo que se necesite para la acción determinada ya sea un boton para la baja o un selector.
   // Gracias a esto hacemos que ListaUsuarios sea reutilizable, solo se encarga de pintar la lista de usuarios y gestionar la lista sin saber la acción que se va a realizar.
-  renderAccion: (usuario: UserList) => ReactNode;
+  renderAccion: (usuario: UserSummary) => ReactNode;
 
 }
 

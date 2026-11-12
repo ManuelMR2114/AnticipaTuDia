@@ -42,8 +42,8 @@ const normalizarPatron = ({ value }: { value: unknown }): unknown => {
 
 /** Cómo entrará el estudiante. */
 export class StudentAccessDto {
-    @IsIn(['password', 'pin', 'pattern', 'pictograms'])
-    method!: 'password' | 'pin' | 'pattern' | 'pictograms';
+    @IsIn(['password', 'pin', 'pattern', 'pictogram'])
+    method!: 'password' | 'pin' | 'pattern' | 'pictogram';
 
     @ValidateIf((o: StudentAccessDto) => o.method === 'password')
     @IsString()
@@ -64,7 +64,7 @@ export class StudentAccessDto {
     pattern?: string;
 
     /** Los tres pictogramas elegidos y ordenados constituyen la contraseña. */
-    @ValidateIf((o: StudentAccessDto) => o.method === 'pictograms')
+    @ValidateIf((o: StudentAccessDto) => o.method === 'pictogram')
     @IsArray()
     @ArrayMinSize(3)
     @ArrayMaxSize(3)

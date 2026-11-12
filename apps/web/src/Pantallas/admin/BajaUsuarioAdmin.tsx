@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { SessionResponse, UserList } from '@agenda/shared';
+import type { SessionResponse, UserSummary } from '@agenda/shared';
 import ListaUsuarios from '../../Componentes/ui/ListaUsuarios';
 import { useUsuarios } from '../../Hooks/UseUsuarios';
 
@@ -30,7 +30,7 @@ export default function BajaUsuarioAdmin({ sesion }: BajaUsuarioProps) {
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
 
-  const darDeBaja = async (usuario: UserList) => {
+  const darDeBaja = async (usuario: UserSummary) => {
 
     // Limpiamos mensajes previos y bloqueamos los botones
     setError('');

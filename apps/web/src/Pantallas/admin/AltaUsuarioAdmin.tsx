@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { SessionResponse, UserRole, StudentLoginMethod, CreateUserRequest, StudentAccess, Usercreated } from '@agenda/shared';
+import type { SessionResponse, UserRole, StudentLoginMethod, CreateUserRequest, StudentAccess, UserCreated } from '@agenda/shared';
 
 interface AltaUsuarioProps {
   // Sesión del administrador que es el token que exige la API para crear usuarios
@@ -137,7 +137,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
           break;
         case 'pictogram':
           // Convertimos el texto separado por comas en un array de strings con los IDS. filter(Boolean) es para descartar posibles elementos vacíos.
-          acceso = { method: 'pictograms', pictograms: pictogramas.split(',').map((id) => id.trim()).filter(Boolean) };
+          acceso = { method: 'pictogram', pictograms: pictogramas.split(',').map((id) => id.trim()).filter(Boolean) };
           break;
       }
   
@@ -199,7 +199,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
 
       }
 
-      const creado: Usercreated = await response.json();
+      const creado: UserCreated = await response.json();
       setExito(`Usuario creado correctamente: ${creado.fullName}`);
       
       // Limpiamos los campos tras el éxito

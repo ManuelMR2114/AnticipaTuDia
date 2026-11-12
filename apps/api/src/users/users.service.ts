@@ -9,7 +9,7 @@ import {
     ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { SessionResponse, UserList, UserRole } from '@agenda/shared';
+import type { SessionResponse, UserSummary, UserRole } from '@agenda/shared';
 import { derivarPassword } from './credentials.js';
 import { SupabaseService } from '../supabase/supabase.service.js';
 import type { CreateUserDto, StudentAccessDto } from './create-user.dto.js';
@@ -29,7 +29,7 @@ const LOGIN_METHOD_DB: Record<StudentAccessDto['method'], string> = {
     password: 'password',
     pin: 'pin',
     pattern: 'pattern',
-    pictograms: 'pictogram',
+    pictogram: 'pictogram',
 };
 
 
@@ -60,7 +60,7 @@ export class UsersService {
     // Listar
 
     /** Todos los usuarios, incluidos los dados de baja, ordenados por nombre. */
-    async findAll(): Promise<UserList[]> {
+    async findAll(): Promise<UserSummary[]> {
         const [perfiles, correos] = await Promise.all([
             this.supabase.admin
                 .from('profiles')
@@ -145,7 +145,7 @@ export class UsersService {
     private async createStudent(dto: CreateUserDto): Promise<UsuarioBasico> {
         const acceso = dto.access as StudentAccessDto;
 
-        if (acceso.method === 'pictograms') {
+        if (acceso.method === 'pictogram') {
             await this.comprobarPictogramas(acceso.pictograms ?? []);
         }
 
@@ -188,7 +188,7 @@ export class UsersService {
 
             await this.guardarPerfil(userId, dto, LOGIN_METHOD_DB[acceso.method]);
 
-            if (acceso.method === 'pictograms') {
+            if (acceso.method === 'pictogram') {
                 await this.guardarPictogramas(userId, acceso.pictograms as string[]);
             }
         } catch (err) {

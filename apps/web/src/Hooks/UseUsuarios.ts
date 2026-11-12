@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { SessionResponse, UserList } from '@agenda/shared';
+import type { SessionResponse, UserSummary } from '@agenda/shared';
 
 const API_URL = 'http://localhost:3000/api';
 
 // Resultado de pedir la lista: o los usuarios, o el mensaje de error a mostrar
 type ResultadoUsuarios =
-  | { ok: true; datos: UserList[] }
+  | { ok: true; datos: UserSummary[] }
   | { ok: false; mensaje: string };
 
 // Pide la lista de usuarios a la API y traduce los códigos HTTP a mensajes
@@ -29,7 +29,7 @@ async function pedirUsuarios(accessToken: string): Promise<ResultadoUsuarios> {
       return { ok: false, mensaje: 'No se pudo cargar la lista de usuarios' };
     }
 
-    const datos: UserList[] = await response.json();
+    const datos: UserSummary[] = await response.json();
     return { ok: true, datos };
   } catch {
     return { ok: false, mensaje: 'No se pudo conectar con el servidor' };
@@ -41,7 +41,7 @@ async function pedirUsuarios(accessToken: string): Promise<ResultadoUsuarios> {
 export function useUsuarios(sesion: SessionResponse) {
 
   // Definimos los usuarios tal como los devuelve la API
-  const [usuarios, setUsuarios] = useState<UserList[]>([]);
+  const [usuarios, setUsuarios] = useState<UserSummary[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
