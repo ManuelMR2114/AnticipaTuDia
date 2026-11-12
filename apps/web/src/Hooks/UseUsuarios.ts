@@ -3,71 +3,78 @@ import type { SessionResponse, UserList } from '@agenda/shared';
 
 const API_URL = 'http://localhost:3000/api';
 
+// Resultado de pedir la lista: o los usuarios, o el mensaje de error a mostrar
+type ResultadoUsuarios =
+  | { ok: true; datos: UserList[] }
+  | { ok: false; mensaje: string };
+
+// Pide la lista de usuarios a la API y traduce los códigos HTTP a mensajes
+async function pedirUsuarios(accessToken: string): Promise<ResultadoUsuarios> {
+  try {
+    const response = await fetch(`${API_URL}/users`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    // Si la API responde con error, devolvemos un mensaje según el código
+    if (!response.ok) {
+      if (response.status === 401) {
+        return { ok: false, mensaje: 'Tu sesión ha caducado. Vuelve a entrar' };
+      }
+      if (response.status === 403) {
+        return { ok: false, mensaje: 'No tienes permiso para ver los usuarios' };
+      }
+      if (response.status === 503) {
+        return { ok: false, mensaje: 'Servicio no disponible' };
+      }
+      return { ok: false, mensaje: 'No se pudo cargar la lista de usuarios' };
+    }
+
+    const datos: UserList[] = await response.json();
+    return { ok: true, datos };
+  } catch {
+    return { ok: false, mensaje: 'No se pudo conectar con el servidor' };
+  }
+}
+
 // Cargamos la lista de usuarios para el admin
 // El id de cada usuario se queda guardado aquí pero no se muestra por pantalla. Es necesario para dar de baja y cambiar roles para identificar al usuario que queremos realizarle la baja o el cambio.
 export function useUsuarios(sesion: SessionResponse) {
 
   // Definimos los usuarios tal como los devuelve la API
   const [usuarios, setUsuarios] = useState<UserList[]>([]);
- 
-
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
-  // Usamos useCallback para poder recargar tras una baja o un cambio de rol sin que se repita la accion
-  const cargar = useCallback(async () => {
-
-    try {
-
-      const response = await fetch(`${API_URL}/users`, {
-        headers: { Authorization: `Bearer ${sesion.accessToken}` },
-      });
-
-      // Si la API responde con error, mostramos un mensaje según el código y paramos aquí
-      if (!response.ok) {
-
-        if (response.status === 401){
-
-            setError('Tu sesión ha caducado. Vuelve a entrar');
-
-        } else if (response.status === 403) { 
-
-            setError('No tienes permiso para ver los usuarios');
-
-        } else if (response.status === 503) {
-
-             setError('Servicio no disponible');
-        
-        } else {
-
-            setError('No se pudo cargar la lista de usuarios');
-        }
-
-        return;
-      }
-
+  // Pasa el resultado de la petición al estado y deja de mostrar "Cargando"
+  const aplicarResultado = useCallback((resultado: ResultadoUsuarios) => {
+    if (resultado.ok) {
       // Guardamos los usuarios con su ID y quitamos cualquier error anterior
-      const datos: UserList[] = await response.json();
-      setUsuarios(datos);
+      setUsuarios(resultado.datos);
       setError('');
-
-    } catch {
-
-      setError('No se pudo conectar con el servidor');
-
-    } finally {
-
-      // Da igual lo que pase, dejamos de mostrar "Cargando"
-      setCargando(false);
-
+    } else {
+      setError(resultado.mensaje);
     }
+    setCargando(false);
+  }, []);
 
-  }, [sesion.accessToken]);
+  // Usamos useCallback para poder recargar tras una baja o un cambio de rol sin que se repita la accion
+  const recargar = useCallback(async () => {
+    aplicarResultado(await pedirUsuarios(sesion.accessToken));
+  }, [sesion.accessToken, aplicarResultado]);
 
-  // Usamos el useEffect para que al abrir la pantalla pida la lista el admin
+  // Usamos el useEffect para que al abrir la pantalla pida la lista el admin.
+  // Si la pantalla se cierra antes de que llegue la respuesta, la ignoramos.
   useEffect(() => {
-    cargar();
-  }, [cargar]);
+    let cancelada = false;
+    pedirUsuarios(sesion.accessToken).then((resultado) => {
+      if (!cancelada) {
+        aplicarResultado(resultado);
+      }
+    });
+    return () => {
+      cancelada = true;
+    };
+  }, [sesion.accessToken, aplicarResultado]);
 
-  return { usuarios, cargando, error, recargar: cargar };
+  return { usuarios, cargando, error, recargar };
 }

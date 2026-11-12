@@ -11,9 +11,6 @@ interface BajaUsuarioProps {
 const API_URL = 'http://localhost:3000/api';
 const RUTA_BAJA_USUARIO = '/users';
 
-const claseInput = 'h-[clamp(44px,4.6vh,60px)] w-full rounded-xl border-[1.5px] border-borde bg-transparent px-5 text-[clamp(16px,1.1vw,22px)] text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-azul-oscuro disabled:opacity-50';
-const claseLabel = 'mb-[1.2vh] block text-[clamp(18px,1.5vw,30px)] font-semibold text-black';
-
 // Botones de cada fila de la lista
 const claseBotonPrimario = 'anillo-foco h-[clamp(36px,4vh,52px)] rounded-xl border-[1.5px] border-azul-oscuro bg-azul-oscuro px-5 text-[clamp(14px,1vw,20px)] font-semibold text-white disabled:opacity-50';
 const claseBotonSecundario = 'anillo-foco h-[clamp(36px,4vh,52px)] rounded-xl border-[1.5px] border-borde bg-transparent px-5 text-[clamp(14px,1vw,20px)] font-semibold text-black disabled:opacity-50';
