@@ -5,10 +5,10 @@ Revisión de `apps/web` y `packages/shared`. Marca cada punto con `[x]` cuando e
 ## Prioridades (orden recomendado)
 
 - [x] 1. Arreglar la inconsistencia `pictogram` / `pictograms` en `shared` (único punto que puede fallar en runtime)
-- [ ] 2. Unificar nombres de carpetas y hooks (`use...`) en `apps/web`
+- [x] 2. Unificar nombres de carpetas y hooks (`use...`) en `apps/web`
 - [x] 3. Reorganizar `shared` por dominios (ver estructura propuesta)
-- [ ] 4. Añadir capa de API centralizada y archivo de rutas en `web`
-- [ ] 5. Reorganizar `apps/web` por funcionalidades (ver estructura propuesta)
+- [x] 4. Añadir capa de API centralizada y archivo de rutas en `web`
+- [x] 5. Reorganizar `apps/web` por funcionalidades (ver estructura propuesta)
 
 ---
 
@@ -97,7 +97,6 @@ src/
 ### Validación y documentación
 
 - [ ] **Valorar Zod** para compartir validación en runtime entre frontend y backend (definir el esquema una vez y derivar el tipo con `z.infer`). Especialmente útil en `StudentAccess`. Si el backend ya valida con DTOs de class-validator, evitaría mantener dos definiciones. Encaja con la decisión de compilar `shared`, ya que pasaría a exportar código real.
-- [ ] **Mover o generar `contrato.md`.** Valorar llevarlo a `docs/` en la raíz o generarlo desde OpenAPI para que no se desincronice del código.
 
 ---
 
@@ -105,17 +104,17 @@ src/
 
 ### Convenciones y nombres
 
-- [ ] **Unificar el idioma de las carpetas.** Ahora se mezclan nombres en español con tipos y API en inglés (`shared`). Decidir una sola convención (la propuesta usa inglés para carpetas técnicas; si el equipo prefiere español, vale igual mientras sea coherente).
-- [ ] **Unificar mayúsculas/minúsculas.** Hay `Componentes`, `Contextos`, `Hooks`, `Pantallas`, `Tipos`, `Utilidades` con mayúscula y `assets` en minúscula. Usar minúscula en todas. En Linux `Componentes` y `componentes` son carpetas distintas, y en Windows/macOS no, lo que puede romper imports o CI.
-- [ ] **Renombrar hooks.** `UseAccesibilidad.ts` → `useAccesibilidad.ts` y `UseUsuarios.ts` → `useUsuarios.ts`. La convención de React (y de los linters `react-hooks`) espera `use` en minúscula.
-- [ ] **`Tipos/metodoLogin.tsx` → `.ts`.** Si solo contiene tipos no necesita JSX.
-- [ ] **Eliminar duplicado de tipos.** Comprobar que `metodoLogin` no repite `StudentLoginMethod` de `@agenda/shared`; si es así, importar el de `shared`.
+- [x] **Unificar el idioma de las carpetas.** Ahora se mezclan nombres en español con tipos y API en inglés (`shared`). Decidir una sola convención (la propuesta usa inglés para carpetas técnicas; si el equipo prefiere español, vale igual mientras sea coherente).
+- [x] **Unificar mayúsculas/minúsculas.** Hay `Componentes`, `Contextos`, `Hooks`, `Pantallas`, `Tipos`, `Utilidades` con mayúscula y `assets` en minúscula. Usar minúscula en todas. En Linux `Componentes` y `componentes` son carpetas distintas, y en Windows/macOS no, lo que puede romper imports o CI.
+- [x] **Renombrar hooks.** `UseAccesibilidad.ts` → `useAccesibilidad.ts` y `UseUsuarios.ts` → `useUsuarios.ts`. La convención de React (y de los linters `react-hooks`) espera `use` en minúscula. Hecho: `features/accessibility/useAccesibilidad.ts` y `features/admin/hooks/useUsuarios.ts`.
+- [x] **`Tipos/metodoLogin.tsx` → `.ts`.** Si solo contiene tipos no necesita JSX. Hecho de otra forma: el archivo se ha eliminado (ver siguiente punto); ya no hay `.tsx` solo de tipos.
+- [x] **Eliminar duplicado de tipos.** Comprobar que `metodoLogin` no repite `StudentLoginMethod` de `@agenda/shared`; si es así, importar el de `shared`. Hecho: `MetodoLogin` duplicaba `StudentLoginMethod` y `EstudianteConMetodo` ya no aporta nada porque `ClassroomStudent` (shared) incluye `loginMethod`; se usa `ClassroomStudent` directamente y `Tipos/metodoLogin.tsx` ha desaparecido.
 
 ### Arquitectura
 
-- [ ] **Crear capa de API centralizada** (`lib/api`): un único módulo que gestione base URL, token, refresh del `accessToken` con `refreshToken` y manejo de errores. Si `useUsuarios` hace `fetch` directo, moverlo ahí. Valorar TanStack Query.
-- [ ] **Definir las rutas en un solo archivo** (`app/router.tsx`), sacándolas de `App.tsx`. Añadir lazy loading por rol (el alumno no debería descargar el código de admin).
-- [ ] **Reorganizar por funcionalidades** (estructura propuesta abajo).
+- [x] **Crear capa de API centralizada** (`lib/api`): un único módulo que gestione base URL, token, refresh del `accessToken` con `refreshToken` y manejo de errores. Si `useUsuarios` hace `fetch` directo, moverlo ahí. Valorar TanStack Query. Hecho en `src/lib/api/` (`client.ts` con `API_URL` desde `VITE_API_URL`, token y cabeceras; `auth.ts`, `users.ts`, `classrooms.ts`, `pictograms.ts` por recurso). Sin refresh: el backend no expone endpoint de refresh, así que al caducar el token `leerSesion` lo descarta y se vuelve al login. No se ha adoptado TanStack Query: con el cliente único basta por ahora. Ya no hay `fetch` directo fuera de `lib/api`.
+- [x] **Definir las rutas en un solo archivo** (`app/router.tsx`), sacándolas de `App.tsx`. Añadir lazy loading por rol (el alumno no debería descargar el código de admin). Hecho: `src/app/router.tsx` con `React.lazy` para `PanelAdmin`, `AltaUsuarioAdmin`, `BajaUsuarioAdmin` y `GestionRolesAdmin` (chunks separados en el build); el flujo de acceso vive en `src/app/FlujoAcceso.tsx` y `App.tsx` solo monta providers y router.
+- [x] **Reorganizar por funcionalidades** (estructura propuesta abajo). Hecho según la tabla de migración; además `src/app/FlujoAcceso.tsx` compone `auth` y `student-login` para que las features no se importen entre sí, y `src/App.css` (sin importar y con estilos muertos) se ha eliminado en lugar de moverlo a `styles/`.
 
 ### Estructura propuesta
 
@@ -179,13 +178,13 @@ Tabla de migración desde la estructura actual:
 
 ### Entorno y herramientas
 
-- [ ] **Añadir tests** (`vitest`).
-- [ ] **Añadir `.env.example`** y definir `VITE_API_URL`.
-- [ ] **Comprobar `src/vite-env.d.ts`** (tipos de `import.meta.env`).
-- [ ] **Verificar `.gitignore`**: `dist/` y `node_modules/` deben estar ignorados.
+- [x] **Añadir tests** (`vitest`). Hecho: `vitest` en devDependencies, script `test`, y tests de `features/auth/session.ts` y `lib/api/client.ts` (6 tests).
+- [x] **Añadir `.env.example`** y definir `VITE_API_URL`. Hecho en `apps/web/.env.example`; `lib/api/client.ts` lo lee con el mismo valor por defecto de antes.
+- [x] **Comprobar `src/vite-env.d.ts`** (tipos de `import.meta.env`). Hecho: creado con la referencia a `vite/client` y `VITE_API_URL` tipada.
+- [x] **Verificar `.gitignore`**: `dist/` y `node_modules/` deben estar ignorados. Comprobado: ya lo estaban en `apps/web/.gitignore`.
 
 ---
 
 ## Pendiente de revisar
 
-- [ ] Revisar `App.tsx`, `useUsuarios.ts` y `sesion.ts` para ver cómo se gestionan rutas, sesión y llamadas al backend.
+- [x] Revisar `App.tsx`, `useUsuarios.ts` y `sesion.ts` para ver cómo se gestionan rutas, sesión y llamadas al backend. Hecho durante este refactor: rutas a `app/router.tsx`, sesión en `features/auth/session.ts` (sin cambios de comportamiento, con tests) y llamadas a `lib/api`.
