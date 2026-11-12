@@ -9,7 +9,7 @@ import {
     ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { SessionResponse } from '@agenda/shared';
+import type { SessionResponse, UserList, UserRole } from '@agenda/shared';
 import { derivarPassword } from './credentials.js';
 import { SupabaseService } from '../supabase/supabase.service.js';
 import type { CreateUserDto, StudentAccessDto } from './create-user.dto.js';
@@ -40,6 +40,12 @@ interface PerfilBasico {
     role: string;
     deactivated_at: string | null;
 }
+export interface PerfilLista {
+    id: string;
+    full_name: string;
+    role: string;
+    deactivated_at: string | null;
+}
 
 @Injectable()
 export class UsersService {
@@ -49,6 +55,60 @@ export class UsersService {
         private readonly supabase: SupabaseService,
         private readonly config: ConfigService,
     ) { }
+
+
+    // Listar
+
+    /** Todos los usuarios, incluidos los dados de baja, ordenados por nombre. */
+    async findAll(): Promise<UserList[]> {
+        const [perfiles, correos] = await Promise.all([
+            this.supabase.admin
+                .from('profiles')
+                .select('id, full_name, role, deactivated_at')
+                .order('full_name', { ascending: true }),
+            this.leerCorreos(),
+        ]);
+
+        if (perfiles.error) {
+            this.logger.error(`Error listando usuarios: ${perfiles.error.message}`);
+            throw new ServiceUnavailableException('Servicio no disponible');
+        }
+
+        const filas = (perfiles.data ?? []) as unknown as PerfilLista[];
+        return filas.map((p) => ({
+            id: p.id,
+            fullName: p.full_name,
+            // El correo de los alumnos es opaco (est-<uuid>@...invalid): no se muestra.
+            email: p.role === 'student' ? null : (correos.get(p.id) ?? null),
+            role: p.role as UserRole,
+            deactivatedAt: p.deactivated_at,
+        }));
+    }
+
+    /** Mapa id → correo leído de Auth (paginado: listUsers devuelve como máximo 1000 por página). */
+    private async leerCorreos(): Promise<Map<string, string>> {
+        const correos = new Map<string, string>();
+        const porPagina = 1000;
+
+        for (let page = 1; ; page++) {
+            const { data, error } = await this.supabase.admin.auth.admin.listUsers({
+                page,
+                perPage: porPagina,
+            });
+
+            if (error) {
+                this.logger.error(`Error leyendo correos de Auth: ${error.message}`);
+                throw new ServiceUnavailableException('Servicio no disponible');
+            }
+
+            for (const usuario of data.users) {
+                if (usuario.email) correos.set(usuario.id, usuario.email);
+            }
+            if (data.users.length < porPagina) break;
+        }
+
+        return correos;
+    }
 
     // Dar de alta
 
