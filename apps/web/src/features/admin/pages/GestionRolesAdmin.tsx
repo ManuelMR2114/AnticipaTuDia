@@ -65,7 +65,7 @@ export default function GestionRolesAdmin({ sesion }: GestionRolesProps) {
 
         } else if (response.status === 400) {
 
-          setError('No puedes cambiar un tutor/familiar/especialista/admin a estudiante');
+          setError('No puedes cambiar un tutor/familiar/especialista/admin a estudiante o al revés ');
 
         } else if (response.status === 404) {
 

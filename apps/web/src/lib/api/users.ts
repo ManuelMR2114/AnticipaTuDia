@@ -10,7 +10,7 @@ export function crearUsuario(token: string, cuerpo: CreateUserRequest): Promise<
 }
 
 export function darDeBajaUsuario(token: string, id: string): Promise<Response> {
-  return apiFetch(`/users/${id}/deactivated_at`, { method: 'PATCH', token });
+  return apiFetch(`/users/${id}/deactivate`, { method: 'PATCH', token });
 }
 
 export function cambiarRolUsuario(
