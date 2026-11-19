@@ -39,7 +39,7 @@ export class AuthController {
     @Post('student/login')
     @HttpCode(200)
     loginStudent(@Body() dto: StudentLoginDto): Promise<SessionResponse> {
-        return this.auth.loginStudent(dto.userId, dto.password);
+        return this.auth.loginStudent(dto.studentId, dto.password);
     }
 
     // Cierre de sesión.

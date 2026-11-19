@@ -7,7 +7,7 @@ import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
  */
 export class StudentLoginDto {
     @IsUUID()
-    userId!: string;
+    studentId!: string;
 
     @IsString()
     @IsNotEmpty()
