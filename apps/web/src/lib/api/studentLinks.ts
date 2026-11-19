@@ -35,3 +35,7 @@ export function modificarAsociacion(
 export function eliminarAsociacion(token: string, id: string): Promise<Response> {
   return apiFetch(`/student-links/${id}`, { method: 'DELETE', token });
 }
+
+export function listarMisAlumnos(token: string): Promise<Response> {
+  return apiFetch('/student-links/my-students', { token });
+}
