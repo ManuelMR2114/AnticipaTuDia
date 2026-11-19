@@ -44,7 +44,7 @@ export function useUsuarios(sesion: SessionResponse) {
 
   // Pasa el resultado de la petición al estado y deja de mostrar "Cargando"
   const aplicarResultado = useCallback((resultado: ResultadoUsuarios) => {
-    if (resultado.ok) {
+    if ('datos' in resultado) {
       // Guardamos los usuarios con su ID y quitamos cualquier error anterior
       setUsuarios(resultado.datos);
       setError('');

@@ -9,6 +9,7 @@ import { leerSesion } from '../features/auth/session';
 const PanelAdmin = lazy(() => import('../features/admin/pages/PanelAdmin'));
 const AltaUsuarioAdmin = lazy(() => import('../features/admin/pages/AltaUsuarioAdmin'));
 const BajaUsuarioAdmin = lazy(() => import('../features/admin/pages/BajaUsuarioAdmin'));
+const AsociacionesAdmin = lazy(() => import('../features/admin/pages/AsociacionesAdmin'));
 const GestionRolesAdmin = lazy(
   () => import('../features/admin/pages/GestionRolesAdmin'),
 );
@@ -52,6 +53,16 @@ export default function AppRouter() {
                 </ConSesion>
               }
             />
+            
+            <Route
+              path="asociaciones"
+              element={
+                <ConSesion>{(sesion) => <AsociacionesAdmin sesion={sesion} />}</ConSesion>
+              }
+            />
+
+
+
           </Route>
         </Route>
 
