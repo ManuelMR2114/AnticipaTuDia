@@ -12,6 +12,7 @@ import {
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './login.dto.js';
 import { SupabaseAuthGuard } from './guards/supabase-auth.guard.js';
+import { StudentLoginDto } from './students-login.dto.js';
 
 import type { SessionResponse } from '@agenda/shared';
 
@@ -32,6 +33,13 @@ export class AuthController {
             dto.email,
             dto.password,
         );
+    }
+
+    // Este es login para estudiantes, usa un dto distinto porque recibe un id no un email
+    @Post('student/login')
+    @HttpCode(200)
+    loginStudent(@Body() dto: StudentLoginDto): Promise<SessionResponse> {
+        return this.auth.loginStudent(dto.userId, dto.password);
     }
 
     // Cierre de sesión.

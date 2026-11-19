@@ -168,9 +168,25 @@ export class UsersService {
 
         try {
             if (acceso.method !== 'password') {
-                const secreto = acceso.method === 'pin'
-                    ? (acceso.pin as string)
-                    : (acceso.pictograms as string[]).join('|');
+
+                let secreto: string;
+
+                switch (acceso.method) {
+                    case 'pin':
+                        secreto = acceso.pin as string;
+                        break;
+
+                    case 'pattern':
+                        secreto = acceso.pattern as string;
+                        break;
+
+                    case 'pictogram':
+                        secreto = (acceso.pictograms as string[]).join('|');
+                        break;
+
+                    default:
+                        throw new BadRequestException('Método de acceso no válido');
+                }
 
                 const { error: errorPassword } = await this.supabase.admin.auth.admin.updateUserById(userId, {
                     password: derivarPassword(
