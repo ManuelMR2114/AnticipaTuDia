@@ -4,6 +4,7 @@ import type { SessionResponse } from '@agenda/shared';
 import FlujoAcceso from './FlujoAcceso';
 import RutaProtegida from '../features/auth/components/RutaProtegida';
 import { leerSesion } from '../features/auth/session';
+import AgendaEstudiantePage from '../features/agenda/pages/AgendaEstudiantePage';
 
 // El panel de administración se carga solo cuando un admin entra en /admin.
 const PanelAdmin = lazy(() => import('../features/admin/pages/PanelAdmin'));
@@ -66,16 +67,12 @@ export default function AppRouter() {
                 </ConSesion>
               }
             />
-            
             <Route
               path="asociaciones"
               element={
                 <ConSesion>{(sesion) => <AsociacionesAdmin sesion={sesion} />}</ConSesion>
               }
             />
-
-
-
           </Route>
         </Route>
 
@@ -90,6 +87,8 @@ export default function AppRouter() {
             />
           </Route>
         </Route>
+
+        <Route path="/agenda/:estudianteId" element={<AgendaEstudiantePage />} />
 
         <Route
           path="/"

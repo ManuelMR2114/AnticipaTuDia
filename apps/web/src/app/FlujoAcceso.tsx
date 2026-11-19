@@ -38,8 +38,32 @@ export default function FlujoAcceso() {
   };
 
   const alEntrar = (sessionData: SessionResponse) => {
+    guardarSesion(sessionData);
     setSesion(sessionData);
-    console.log(`Acceso completado como ${sessionData.user.role}`);
+
+    const rol = sessionData.user.role;
+    if (rol === 'student') {
+      const idAlumno = sessionData.user.id ?? estudianteSeleccionado?.id;
+      const nombreAlumno =
+        (sessionData.user as { fullName?: string }).fullName ??
+        estudianteSeleccionado?.fullName;
+
+      if (idAlumno) {
+        navigate(`/agenda/${idAlumno}`, {
+          state: { nombreAlumno },
+        });
+      }
+      return;
+    }
+
+    if (rol === 'admin') {
+      navigate('/admin', { replace: true });
+      return;
+    }
+
+    if (rol === 'tutor') {
+      navigate('/tutor', { replace: true });
+    }
   };
 
   return (
@@ -125,12 +149,7 @@ export default function FlujoAcceso() {
         <InicioSesionTutorFamilia
           rol={rolSeleccionado}
           onVolver={() => setVistaActual('seleccion-rol')}
-          onLoginExitoso={(sessionData) => {
-            guardarSesion(sessionData);
-            alEntrar(sessionData);
-            if (sessionData.user.role === 'admin') navigate('/admin', { replace: true });
-            if (sessionData.user.role === 'tutor') navigate('/tutor', { replace: true });
-          }}
+          onLoginExitoso={alEntrar}
         />
       )}
     </div>
