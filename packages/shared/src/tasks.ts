@@ -23,3 +23,15 @@ export interface Task {
   completedAt: ISODateString | null;
   subtasks: Subtask[];
 }
+
+export interface AssignTaskRequest {
+  studentIds: string[];
+  title: string;
+  description?: string;
+  dueAt?: ISODateString;
+  subtasks?: string[];
+}
+
+export interface AssignTaskResponse {
+  taskIds: string[];
+}
