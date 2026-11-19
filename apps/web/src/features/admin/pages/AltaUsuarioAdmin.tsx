@@ -46,7 +46,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
   // Datos de tutor. familiar, profesor, especialista
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   // Datos para alumnos
   const [metodo, setMetodo] = useState<MetodoAcceso>('pin');
   const [pinAlumno, setPinAlumno] = useState('');
@@ -138,7 +138,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
           acceso = { method: 'pictogram', pictograms: pictogramas.split(',').map((id) => id.trim()).filter(Boolean) };
           break;
       }
-  
+
       cuerpo_peticion = {
         fullName: nombre.trim(),
         role: 'student',
@@ -163,27 +163,27 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
       // Si la API responde con error, mostramos un mensaje según el código y paramos aquí
       if (!response.ok) {
 
-        if (response.status === 401){
-            setError('Tu sesión ha caducado. Vuelve a entrar');
-        } else if (response.status === 403){
+        if (response.status === 401) {
+          setError('Tu sesión ha caducado. Vuelve a entrar');
+        } else if (response.status === 403) {
 
-            setError('No tienes permiso para dar de alta usuarios');
+          setError('No tienes permiso para dar de alta usuarios');
 
         } else if (response.status === 409) {
 
-            setError('Ya existe un usuario con ese correo');
+          setError('Ya existe un usuario con ese correo');
 
-        } else if (response.status === 400){
+        } else if (response.status === 400) {
 
-            setError('Revisa los datos: alguno no es válido');
+          setError('Revisa los datos: alguno no es válido');
 
-        } else if (response.status === 503){
+        } else if (response.status === 503) {
 
-            setError('Servicio no disponible');
+          setError('Servicio no disponible');
 
         } else {
 
-            setError('No se pudo dar de alta al usuario');
+          setError('No se pudo dar de alta al usuario');
         }
 
         return;
@@ -192,7 +192,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
 
       const creado: UserCreated = await response.json();
       setExito(`Usuario creado correctamente: ${creado.fullName}`);
-      
+
       // Limpiamos los campos tras el éxito
       setNombre('');
       setEmail('');
@@ -321,7 +321,7 @@ export default function AltaUsuario({ sesion }: AltaUsuarioProps) {
                 <input
                   id="credencial"
                   type="text"
-                  placeholder="Ej: 0-1-2-5"
+                  placeholder="Ej: 0,1,2,5"
                   value={patronAlumno}
                   onChange={(e) => setPatronAlumno(e.target.value)}
                   className={claseInput}
