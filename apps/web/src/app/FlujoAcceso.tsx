@@ -129,6 +129,7 @@ export default function FlujoAcceso() {
             guardarSesion(sessionData);
             alEntrar(sessionData);
             if (sessionData.user.role === 'admin') navigate('/admin', { replace: true });
+            if (sessionData.user.role === 'tutor') navigate('/tutor', { replace: true });
           }}
         />
       )}

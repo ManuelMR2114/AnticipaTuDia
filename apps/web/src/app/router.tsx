@@ -14,13 +14,26 @@ const GestionRolesAdmin = lazy(
   () => import('../features/admin/pages/GestionRolesAdmin'),
 );
 
+// Igual con el panel del tutor: solo se descarga cuando entra en /tutor.
+const PanelTutor = lazy(() => import('../features/tutor/pages/PanelTutor'));
+const AsignarTareasTutor = lazy(() => import('../features/tutor/pages/AsignarTareasTutor'));
+
 function ConSesion({ children }: { children: (sesion: SessionResponse) => ReactNode }) {
   const sesion = leerSesion();
   if (!sesion) return <Navigate to="/" replace />;
   return <>{children(sesion)}</>;
 }
 
+// Si ya hay sesión de admin o tutor, "/" lleva directamente a su panel.
+function rutaPanel(sesion: SessionResponse | null): string | null {
+  if (sesion?.user.role === 'admin') return '/admin';
+  if (sesion?.user.role === 'tutor') return '/tutor';
+  return null;
+}
+
 export default function AppRouter() {
+  const panel = rutaPanel(leerSesion());
+
   return (
     <Suspense
       fallback={
@@ -66,15 +79,21 @@ export default function AppRouter() {
           </Route>
         </Route>
 
+        <Route path="/tutor" element={<RutaProtegida roles={['tutor']} />}>
+          <Route element={<PanelTutor />}>
+            <Route index element={<Navigate to="tareas/asignar" replace />} />
+            <Route
+              path="tareas/asignar"
+              element={
+                <ConSesion>{(sesion) => <AsignarTareasTutor sesion={sesion} />}</ConSesion>
+              }
+            />
+          </Route>
+        </Route>
+
         <Route
           path="/"
-          element={
-            leerSesion()?.user.role === 'admin' ? (
-              <Navigate to="/admin" replace />
-            ) : (
-              <FlujoAcceso />
-            )
-          }
+          element={panel ? <Navigate to={panel} replace /> : <FlujoAcceso />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
