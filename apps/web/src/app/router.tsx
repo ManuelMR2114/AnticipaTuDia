@@ -20,6 +20,9 @@ const GestionRolesAdmin = lazy(
 // Igual con el panel del tutor: solo se descarga cuando entra en /tutor.
 const PanelTutor = lazy(() => import('../features/tutor/pages/PanelTutor'));
 const AsignarTareasTutor = lazy(() => import('../features/tutor/pages/AsignarTareasTutor'));
+const EliminarTareasTutor = lazy(() => import('../features/tutor/pages/EliminarTareasTutor'));
+const VisualizaAlumnosTutor = lazy(() => import('../features/tutor/pages/VisualizacionAlumnos'));
+
 
 function ConSesion({ children }: { children: (sesion: SessionResponse) => ReactNode }) {
   const sesion = leerSesion();
@@ -87,6 +90,22 @@ export default function AppRouter() {
                 <ConSesion>{(sesion) => <AsignarTareasTutor sesion={sesion} />}</ConSesion>
               }
             />
+
+            <Route
+              path="tareas/eliminar"
+              element={
+                <ConSesion>{(sesion) => <EliminarTareasTutor sesion={sesion} />}</ConSesion>
+              }
+            />
+            
+            <Route index element={<Navigate to="alumnos" replace />} />
+            <Route
+              path="alumnos"
+              element={
+                <ConSesion>{(sesion) => <VisualizaAlumnosTutor sesion={sesion} />}</ConSesion>
+              }
+            />
+
           </Route>
         </Route>
 

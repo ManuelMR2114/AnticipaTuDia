@@ -33,6 +33,27 @@ const MENU: ElementoMenu[] = [
       </svg>
     ),
   },
+  {
+    to: '/tutor/tareas/eliminar',
+    etiqueta: 'Eliminar tareas',
+    icono: (
+        <svg {...propsIcono}>
+        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" />
+        </svg>
+    ),
+  },
+
+  {
+    to: '/tutor/alumnos',
+    etiqueta: 'Mis alumnos',
+    icono: (
+      <svg {...propsIcono}>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
 ];
 
 /** Layout del panel del tutor: barra lateral + cabecera + contenedor de vistas (<Outlet />). */
