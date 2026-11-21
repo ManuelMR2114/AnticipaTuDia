@@ -5,6 +5,8 @@ import FlujoAcceso from './FlujoAcceso';
 import RutaProtegida from '../features/auth/components/RutaProtegida';
 import { leerSesion } from '../features/auth/session';
 import AgendaEstudiantePage from '../features/agenda/pages/AgendaEstudiantePage';
+import NuevaTareaPage from '../features/agenda/pages/NuevaTareaPage';
+import ModificarTareaPage from '../features/agenda/pages/ModificarTareaPage';
 
 // El panel de administración se carga solo cuando un admin entra en /admin.
 const PanelAdmin = lazy(() => import('../features/admin/pages/PanelAdmin'));
@@ -88,7 +90,9 @@ export default function AppRouter() {
           </Route>
         </Route>
 
+        <Route path="/agenda/:estudianteId/nueva" element={<NuevaTareaPage />} />
         <Route path="/agenda/:estudianteId" element={<AgendaEstudiantePage />} />
+        <Route path="/agenda/:estudianteId/modificar-tarea" element={<ModificarTareaPage />} />
 
         <Route
           path="/"

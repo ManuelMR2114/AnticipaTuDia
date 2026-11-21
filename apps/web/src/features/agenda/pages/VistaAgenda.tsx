@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import BotonAccesibilidad from '../../accessibility/BotonAccesibilidad';
 
 export interface TareaAgenda {
@@ -7,12 +8,17 @@ export interface TareaAgenda {
   diaTiempo: string; // Ej: "Hoy - 10:00"
 }
 
+interface LocationStateAgenda {
+  nombreAlumno?: string;
+}
+
 interface VistaAgendaProps {
   nombreAlumno?: string;
   tareas: TareaAgenda[];
   onVolver: () => void;
   onIniciarTarea: (tareaId: string) => void;
-  onVerDetalleTarea: (tareaId: string) => void;
+  onVerDetalleTarea?: (tarea: TareaAgenda) => void;
+  onAnadirTarea?: () => void;
   onCambiarPeriodo?: (periodo: 'hoy' | 'semana' | 'mes') => void;
   onSeleccionarDia?: (valor: string | number) => void;
 }
@@ -23,7 +29,6 @@ const COLORES_TARJETA = [
   'bg-[#F2B08A] border-[#C9855E]', // Salmón
 ];
 
-// Orden Lunes -> Domingo con su índice de getDay() (0 = Domingo, 1 = Lunes, ...)
 const DIAS_SEMANA_CONFIG = [
   { label: 'Lunes', shortLabel: 'Lun', dayIndex: 1 },
   { label: 'Martes', shortLabel: 'Mar', dayIndex: 2 },
@@ -57,7 +62,7 @@ function esMismaFechaCalendario(a: Date, b: Date): boolean {
 function obtenerFechaDeDiaSemanaActual(dayIndex: number): Date {
   const hoy = new Date();
   const base = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-  const diaActualSemana = base.getDay(); // 0 = Domingo ... 6 = Sábado
+  const diaActualSemana = base.getDay();
   const offsetLunesActual = diaActualSemana === 0 ? -6 : 1 - diaActualSemana;
   const lunesActual = new Date(
     base.getFullYear(),
@@ -100,8 +105,8 @@ function obtenerSemanasCalendarioMesActual(): (number | null)[][] {
   const year = ahora.getFullYear();
   const month = ahora.getMonth();
 
-  const primerDiaSemana = new Date(year, month, 1).getDay(); // 0 = Dom ... 6 = Sáb
-  const offsetInicio = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1; // 0 = Lun ... 6 = Dom
+  const primerDiaSemana = new Date(year, month, 1).getDay();
+  const offsetInicio = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
   const ultimoDia = new Date(year, month + 1, 0).getDate();
 
   const celdas: (number | null)[] = [
@@ -147,17 +152,21 @@ function obtenerClaseBotonDia({
 }
 
 export function VistaAgenda({
+  nombreAlumno,
   tareas,
   onVolver,
   onIniciarTarea,
   onVerDetalleTarea,
+  onAnadirTarea,
   onCambiarPeriodo,
   onSeleccionarDia,
 }: VistaAgendaProps) {
-  const [periodo, setPeriodo] = useState<'hoy' | 'semana' | 'mes'>('hoy');
+  const { estudianteId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as LocationStateAgenda | null;
 
-  // Si estamos eligiendo día dentro de "semana" o "mes", mostramos solo el selector de días.
-  // Al volver al selector limpiamos la selección anterior para que no quede marcada con color.
+  const [periodo, setPeriodo] = useState<'hoy' | 'semana' | 'mes'>('hoy');
   const [modoSelectorDias, setModoSelectorDias] = useState<boolean>(false);
   const [diaSemanaSeleccionado, setDiaSemanaSeleccionado] = useState<string | null>(null);
   const [diaMesSeleccionado, setDiaMesSeleccionado] = useState<number | null>(null);
@@ -207,6 +216,16 @@ export function VistaAgenda({
     onSeleccionarDia?.(dia);
   };
 
+  const manejarVerTarea = (tarea: TareaAgenda) => {
+    onVerDetalleTarea?.(tarea);
+    navigate(`/agenda/${estudianteId ?? ''}/modificar-tarea`, {
+      state: {
+        nombreAlumno: nombreAlumno ?? state?.nombreAlumno,
+        tarea,
+      },
+    });
+  };
+
   const etiquetaDiaActual = useMemo(() => {
     if (periodo === 'hoy') {
       return formatearEtiquetaDia(new Date(), true);
@@ -226,9 +245,20 @@ export function VistaAgenda({
     return formatearEtiquetaDia(fechaMes);
   }, [periodo, diaSemanaSeleccionado, diaMesSeleccionado]);
 
+  const manejarAnadirTarea = () => {
+    if (onAnadirTarea) {
+      onAnadirTarea();
+      return;
+    }
+    navigate(`/agenda/${estudianteId ?? ''}/nueva-tarea`, {
+      state: {
+        nombreAlumno: nombreAlumno ?? state?.nombreAlumno,
+      },
+    });
+  };
+
   return (
     <div className="h-screen w-screen overflow-hidden bg-[#F7F4E9] flex flex-col justify-between p-6 select-none">
-      {/* CABECERA FIJA */}
       <header className="flex items-center justify-between w-full shrink-0 h-28">
         <div className="flex items-center gap-6">
           <img
@@ -249,9 +279,7 @@ export function VistaAgenda({
         </div>
       </header>
 
-      {/* ZONA CENTRAL FIJA */}
       <main className="flex-1 min-h-0 flex flex-col justify-between max-w-4xl w-full mx-auto py-2">
-        {/* FILA SUPERIOR: Día/contexto a la izquierda + Hoy/Esta semana/Este mes a la derecha */}
         <div className="w-full flex items-center justify-between gap-4 shrink-0 min-h-[60px] px-2 mb-2">
           <div className="min-w-0">
             {!modoSelectorDias && (
@@ -280,7 +308,6 @@ export function VistaAgenda({
           </div>
         </div>
 
-        {/* CONTENEDOR PRINCIPAL FIJO: o selector grande de días, o las 3 filas de tareas */}
         <div className="w-full flex-1 min-h-0 flex flex-col justify-between gap-4 my-1">
           {modoSelectorDias && periodo === 'semana' ? (
             <div className="h-full flex flex-col items-center justify-center gap-4 px-2">
@@ -308,7 +335,6 @@ export function VistaAgenda({
             </div>
           ) : modoSelectorDias && periodo === 'mes' ? (
             <div className="h-full flex flex-col items-center justify-center gap-2.5 px-2">
-              {/* Cabecera de columnas Lunes - Domingo */}
               <div className="grid grid-cols-7 gap-3 w-full max-w-2xl mb-1">
                 {DIAS_SEMANA_CONFIG.map((dia) => (
                   <div
@@ -320,7 +346,6 @@ export function VistaAgenda({
                 ))}
               </div>
 
-              {/* Filas de semanas del mes actual */}
               {semanasMes.map((semana, indiceSemana) => (
                 <div
                   key={indiceSemana}
@@ -387,10 +412,9 @@ export function VistaAgenda({
 
               return (
                 <div key={tarea.id} className="flex-1 min-h-0 flex items-center gap-4">
-                  {/* Tarjeta de tarea */}
                   <button
                     type="button"
-                    onClick={() => onVerDetalleTarea(tarea.id)}
+                    onClick={() => manejarVerTarea(tarea)}
                     className={`flex-1 h-full flex items-center justify-between px-6 py-3 rounded-2xl border-2 text-left shadow-sm hover:brightness-95 active:scale-[0.99] transition cursor-pointer ${colorClase}`}
                   >
                     <div className="min-w-0 pr-4">
@@ -398,7 +422,6 @@ export function VistaAgenda({
                       <p className="text-lg font-medium text-gray-800 truncate">{tarea.diaTiempo}</p>
                     </div>
 
-                    {/* Botón/distintivo "Ver" con ojo más grande */}
                     <span className="shrink-0 inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl border-2 border-gray-900 bg-white/90 text-gray-900 font-bold text-xl shadow-xs">
                       <span>Ver</span>
                       <svg
@@ -418,7 +441,6 @@ export function VistaAgenda({
                     </span>
                   </button>
 
-                  {/* Botón "Iniciar" a la derecha */}
                   <button
                     type="button"
                     onClick={() => onIniciarTarea(tarea.id)}
@@ -432,7 +454,6 @@ export function VistaAgenda({
           )}
         </div>
 
-        {/* PAGINACIÓN FIJA ABAJO */}
         <div className="h-14 shrink-0 flex items-center justify-center">
           {!modoSelectorDias && totalPaginas > 1 && (
             <div className="flex items-center gap-6">
@@ -468,8 +489,7 @@ export function VistaAgenda({
         </div>
       </main>
 
-      {/* PIE FIJO: Botón circular de volver atrás */}
-      <footer className="flex items-center justify-between shrink-0 h-16">
+      <footer className="relative flex items-center justify-between shrink-0 h-16">
         <button
           type="button"
           onClick={() => {
@@ -480,11 +500,40 @@ export function VistaAgenda({
               onVolver();
             }
           }}
-          aria-label="Volver atrás"
-          className="w-14 h-14 rounded-full border-2 border-gray-900 bg-white hover:bg-gray-100 flex items-center justify-center text-2xl font-bold shadow-sm transition cursor-pointer"
+          aria-label="Ir al inicio"
+          className="w-14 h-14 rounded-full border-2 border-gray-900 bg-white hover:bg-gray-100 flex items-center justify-center text-gray-900 shadow-sm transition cursor-pointer"
         >
-          ←
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-7 h-7"
+            aria-hidden="true"
+          >
+            <path d="M3 10.5 12 3l9 7.5" />
+            <path d="M5 9.5V20h14V9.5" />
+            <path d="M10 20v-6h4v6" />
+          </svg>
         </button>
+
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <button
+            type="button"
+            onClick={manejarAnadirTarea}
+            className="inline-flex items-center gap-3 px-8 py-3 rounded-2xl bg-[#1B365D] hover:bg-[#132744] active:scale-[0.98] text-white text-2xl font-extrabold border-2 border-[#C69738] ring-4 ring-[#FBE7B4] shadow-lg transition cursor-pointer"
+          >
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#FBE7B4] text-[#1B365D] text-3xl font-black leading-none">
+              +
+            </span>
+            <span>Añadir tarea</span>
+          </button>
+        </div>
+
+        <div className="w-14 shrink-0" aria-hidden="true" />
       </footer>
     </div>
   );

@@ -4,6 +4,7 @@ import { VistaAgenda, type TareaAgenda } from './VistaAgenda';
 
 interface LocationState {
   nombreAlumno?: string;
+  nuevaTarea?: TareaAgenda;
 }
 
 export default function AgendaEstudiantePage() {
@@ -19,13 +20,11 @@ export default function AgendaEstudiantePage() {
   useEffect(() => {
     if (!estudianteId) return;
 
-    // Aquí conectará la consulta real de tareas por estudianteId, periodo y diaSeleccionado.
-    // Mientras tanto, genera tareas de prueba asociadas al estudianteId elegido.
-    setTareas([
+    const baseTareas: TareaAgenda[] = [
       {
         id: `${estudianteId}-1`,
         titulo: 'Preparar materiales',
-        diaTiempo: `${periodo} - 09:00`,
+        diaTiempo: 'Hoy - 09:00',
       },
       {
         id: `${estudianteId}-2`,
@@ -37,14 +36,30 @@ export default function AgendaEstudiantePage() {
         titulo: 'Taller de autonomía',
         diaTiempo: 'Hoy - 12:00',
       },
-    ]);
-  }, [estudianteId, periodo, diaSeleccionado]);
+      {
+        id: `${estudianteId}-4`,
+        titulo: 'Taller de autonomía 2',
+        diaTiempo: 'Hoy - 14:00',
+      }
+    ];
+
+    if (state?.nuevaTarea) {
+      setTareas([state.nuevaTarea, ...baseTareas]);
+    } else {
+      setTareas(baseTareas);
+    }
+  }, [estudianteId, periodo, diaSeleccionado, state?.nuevaTarea]);
 
   return (
     <VistaAgenda
       nombreAlumno={state?.nombreAlumno}
       tareas={tareas}
       onVolver={() => navigate(-1)}
+      onAnadirTarea={() =>
+        navigate(`/agenda/${estudianteId}/nueva`, {
+          state: { nombreAlumno: state?.nombreAlumno },
+        })
+      }
       onCambiarPeriodo={(nuevoPeriodo) => {
         setPeriodo(nuevoPeriodo);
         setDiaSeleccionado(null);
