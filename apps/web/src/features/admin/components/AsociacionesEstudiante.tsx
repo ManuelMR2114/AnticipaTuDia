@@ -1,13 +1,7 @@
 import { useState } from 'react';
-import type { SessionResponse, UserRole, UserSummary } from '@agenda/shared';
+import type { LinkRelation, SessionResponse, StudentLink, UserRole, UserSummary } from '@agenda/shared';
 import { useAsociaciones } from '../hooks/useAsociaciones';
-import {
-  crearAsociacion,
-  eliminarAsociacion,
-  modificarAsociacion,
-  type Asociacion,
-  type RelacionAsociacion,
-} from '../../../lib/api/studentLinks';
+import { crearAsociacion, eliminarAsociacion } from '../../../lib/api/studentLinks';
 
 interface Props {
   sesion: SessionResponse;
@@ -17,11 +11,13 @@ interface Props {
   onVolver: () => void;
 }
 
-// Si en el futuro hay más relaciones (p. ej. 'teacher'), solo hay que añadir una entrada aquí.
 // "rol" es el rol que debe tener el usuario para poder asociarse con esa relación.
-const RELACIONES: { valor: RelacionAsociacion; etiqueta: string; plural: string; rol: UserRole }[] = [
+// Si StaffRole del shared tiene más valores, añade aquí una entrada por cada uno.
+const RELACIONES: { valor: LinkRelation; etiqueta: string; plural: string; rol: UserRole }[] = [
   { valor: 'tutor', etiqueta: 'Tutor', plural: 'Tutores', rol: 'tutor' },
   { valor: 'family', etiqueta: 'Familiar', plural: 'Familiares', rol: 'family' },
+  { valor: 'teacher', etiqueta: 'Profesor', plural: 'Profesores', rol: 'teacher' },
+  { valor: 'specialist', etiqueta: 'Especialista', plural: 'Especialistas', rol: 'specialist' },
 ];
 
 const claseSelect =
@@ -47,7 +43,7 @@ export default function AsociacionesEstudiante({ sesion, estudiante, usuarios, o
   const { asociaciones, cargando, error: errorCarga, recargar } = useAsociaciones(sesion, estudiante.id);
 
   // Alta: relación y usuario elegidos en el formulario
-  const [relacionNueva, setRelacionNueva] = useState<RelacionAsociacion>('tutor');
+  const [relacionNueva, setRelacionNueva] = useState<LinkRelation>('tutor');
   const [usuarioNuevoId, setUsuarioNuevoId] = useState('');
 
   // Modificación: usuario elegido en el selector de cada fila, guardado por id de asociación
@@ -64,10 +60,10 @@ export default function AsociacionesEstudiante({ sesion, estudiante, usuarios, o
 
   // Usuarios activos con el rol de la relación que aún no están asociados a este estudiante.
   // "actualId" deja incluido al usuario actual de una fila para poder mostrarlo en su selector.
-  const candidatos = (relacion: RelacionAsociacion, actualId?: string): UserSummary[] => {
+  const candidatos = (relacion: LinkRelation, actualId?: string): UserSummary[] => {
     const rol = RELACIONES.find((r) => r.valor === relacion)?.rol;
     const yaAsociados = new Set(
-      asociaciones.filter((a) => a.relation === relacion).map((a) => a.linkedUserId),
+      asociaciones.filter((a) => a.relation === relacion).map((a) => a.linkedUser.id),
     );
     return usuarios.filter(
       (u) =>
@@ -125,20 +121,29 @@ export default function AsociacionesEstudiante({ sesion, estudiante, usuarios, o
     if (ok) setUsuarioNuevoId('');
   };
 
-  const modificar = (a: Asociacion, nuevoUsuarioId: string) =>
+  // El back no tiene PATCH: primero se crea la nueva y, si sale bien, se quita la antigua.
+  // Así, si algo falla a mitad, queda una asociación de más y no se pierde ninguna.
+  const modificar = (a: StudentLink, nuevoUsuarioId: string) =>
     ejecutar(
       a.id,
       'modificar la asociación',
-      () => modificarAsociacion(sesion.accessToken, a.id, nuevoUsuarioId),
+      async () => {
+        const creada = await crearAsociacion(sesion.accessToken, {
+          studentId: estudiante.id,
+          linkedUserId: nuevoUsuarioId,
+        });
+        if (!creada.ok) return creada;
+        return eliminarAsociacion(sesion.accessToken, estudiante.id, a.linkedUser.id);
+      },
       'Asociación modificada correctamente',
     );
 
-  const quitar = (a: Asociacion) =>
+  const quitar = (a: StudentLink) =>
     ejecutar(
       a.id,
       'eliminar la asociación',
-      () => eliminarAsociacion(sesion.accessToken, a.id),
-      `${a.linkedUserName} ya no está asociado a ${estudiante.fullName}`,
+      () => eliminarAsociacion(sesion.accessToken, estudiante.id, a.linkedUser.id),
+      `${a.linkedUser.fullName} ya no está asociado a ${estudiante.fullName}`,
     );
 
   const ocupado = enviando !== null;
@@ -183,10 +188,10 @@ export default function AsociacionesEstudiante({ sesion, estudiante, usuarios, o
               ) : (
                 <ul className="flex flex-col gap-[1.4vh]">
                   {delaRelacion.map((a) => {
-                    const elegido = elegidos[a.id] ?? a.linkedUserId;
-                    const opciones = candidatos(rel.valor, a.linkedUserId);
+                    const elegido = elegidos[a.id] ?? a.linkedUser.id;
+                    const opciones = candidatos(rel.valor, a.linkedUser.id);
                     // Si el usuario actual está dado de baja no sale en candidatos: lo añadimos para que el selector no quede vacío
-                    const incluyeActual = opciones.some((u) => u.id === a.linkedUserId);
+                    const incluyeActual = opciones.some((u) => u.id === a.linkedUser.id);
                     return (
                       <li key={a.id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border-[1.5px] border-borde px-5 py-3">
                         <select
@@ -196,7 +201,7 @@ export default function AsociacionesEstudiante({ sesion, estudiante, usuarios, o
                           onChange={(e) => setElegidos((prev) => ({ ...prev, [a.id]: e.target.value }))}
                           className={`${claseSelect} min-w-[220px]`}
                         >
-                          {!incluyeActual && <option value={a.linkedUserId}>{a.linkedUserName}</option>}
+                          {!incluyeActual && <option value={a.linkedUser.id}>{a.linkedUser.fullName}</option>}
                           {opciones.map((u) => (
                             <option key={u.id} value={u.id}>
                               {u.fullName}
@@ -208,7 +213,7 @@ export default function AsociacionesEstudiante({ sesion, estudiante, usuarios, o
                           <button
                             type="button"
                             className={claseBotonPrimario}
-                            disabled={ocupado || elegido === a.linkedUserId}
+                            disabled={ocupado || elegido === a.linkedUser.id}
                             onClick={() => modificar(a, elegido)}
                           >
                             {enviando === a.id ? 'Procesando...' : 'Guardar cambio'}
@@ -248,7 +253,7 @@ export default function AsociacionesEstudiante({ sesion, estudiante, usuarios, o
             value={relacionNueva}
             disabled={ocupado}
             onChange={(e) => {
-              setRelacionNueva(e.target.value as RelacionAsociacion);
+              setRelacionNueva(e.target.value as LinkRelation);
               setUsuarioNuevoId(''); // los candidatos cambian con la relación
             }}
             className={`${claseSelect} w-full`}
